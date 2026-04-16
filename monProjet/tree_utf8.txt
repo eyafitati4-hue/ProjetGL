@@ -1,0 +1,160 @@
+﻿Structure du dossier
+Le numÚro de sÚrie du volume est D45B-1469
+D:\BACKEND WITH SPRING SECURITY\MONPROJET\SRC
++---main
+|   +---java
+|   |   \---projetPFE
+|   |       \---example
+|   |           \---monProjet
+|   |               |   MonProjetApplication.java
+|   |               |   
+|   |               +---auth
+|   |               |       AuthenticationController.java
+|   |               |       AuthenticationRequest.java
+|   |               |       AuthenticationResponse.java
+|   |               |       AuthenticationService.java
+|   |               |       RegisterRequest.java
+|   |               |       
+|   |               +---config
+|   |               |       ApplicatioConfig.java
+|   |               |       JwtAuthenticationFilter.java
+|   |               |       JwtService.java
+|   |               |       LogoutService.java
+|   |               |       SecurityConfiguration.java
+|   |               |       
+|   |               +---controller
+|   |               |       AssociationddController.java
+|   |               |       AssociationppController.java
+|   |               |       DemandeController.java
+|   |               |       DeviController.java
+|   |               |       DocumentController.java
+|   |               |       EtatdemandeController.java
+|   |               |       EtatproduitController.java
+|   |               |       EtatutilisateurController.java
+|   |               |       MarqueController.java
+|   |               |       PanierController.java
+|   |               |       ProduitController.java
+|   |               |       RoleController.java
+|   |               |       SimulerController.java
+|   |               |       UtilisateurController.java
+|   |               |       
+|   |               +---demo
+|   |               |       DemoController.java
+|   |               |       
+|   |               +---DTO
+|   |               |       Association10Dto.java
+|   |               |       Association10IdDto.java
+|   |               |       Association4Dto.java
+|   |               |       Association4IdDto.java
+|   |               |       DemandeDto.java
+|   |               |       DeviDto.java
+|   |               |       DocumentDto.java
+|   |               |       EtatdemandeDto.java
+|   |               |       EtatproduitDto.java
+|   |               |       EtatutilisateurDto.java
+|   |               |       MarqueDto.java
+|   |               |       PanierDto.java
+|   |               |       ProduitDto.java
+|   |               |       RoleDto.java
+|   |               |       UtilisateurDto.java
+|   |               |       
+|   |               +---DTOmapper
+|   |               |       Association10DtoDtoMapper.java
+|   |               |       Association10IdDtoDtoMapper.java
+|   |               |       Association4DtoDtoMapper.java
+|   |               |       Association4IdDtoDtoMapper.java
+|   |               |       DemandeDtoMapper.java
+|   |               |       DeviDtoMapper.java
+|   |               |       DocumentDtoMapper.java
+|   |               |       EtatdemandeDtoMapper.java
+|   |               |       EtatProduitDtoMapper.java
+|   |               |       EtatUtilisateurDtoMapper.java
+|   |               |       MarqueDtoMapper.java
+|   |               |       PanierDtoMapper.java
+|   |               |       ProduitDtoMapper.java
+|   |               |       RoleDtoMapper.java
+|   |               |       UtilisateurDtoMapper.java
+|   |               |       
+|   |               +---interfac
+|   |               |       AssociationppInter.java
+|   |               |       DemandeInter.java
+|   |               |       DeviInter.java
+|   |               |       DocumentInter.java
+|   |               |       EtatdemandeInter.java
+|   |               |       EtatproduitInter.java
+|   |               |       EtatutilisateurInter.java
+|   |               |       MarqueInter.java
+|   |               |       PanierInter.java
+|   |               |       ProduitInter.java
+|   |               |       RoleInter.java
+|   |               |       SimulerInter.java
+|   |               |       UtilisateurInter.java
+|   |               |       
+|   |               +---model
+|   |               |       Association10.java
+|   |               |       Association10Id.java
+|   |               |       Association4.java
+|   |               |       Association4Id.java
+|   |               |       Demande.java
+|   |               |       Devi.java
+|   |               |       Document.java
+|   |               |       Etatdemande.java
+|   |               |       Etatproduit.java
+|   |               |       Etatutilisateur.java
+|   |               |       Marque.java
+|   |               |       Panier.java
+|   |               |       Produit.java
+|   |               |       Role.java
+|   |               |       Utilisateur.java
+|   |               |       
+|   |               +---repository
+|   |               |       AbstractAuditableRepository.java
+|   |               |       AbstractPersistableRepository.java
+|   |               |       Association10Repository.java
+|   |               |       Association4Repository.java
+|   |               |       DemandeRepository.java
+|   |               |       DeviRepository.java
+|   |               |       DocumentRepository.java
+|   |               |       EtatdemandeRepository.java
+|   |               |       EtatproduitRepository.java
+|   |               |       EtatutilisateurRepository.java
+|   |               |       MarqueRepository.java
+|   |               |       PanierRepository.java
+|   |               |       ProduitRepository.java
+|   |               |       RoleRepository.java
+|   |               |       UtilisateurRepository.java
+|   |               |       
+|   |               +---service
+|   |               |       Associationdd.java
+|   |               |       Associationpp.java
+|   |               |       Demande.java
+|   |               |       Devi.java
+|   |               |       Document.java
+|   |               |       Etatdemande.java
+|   |               |       Etatproduit.java
+|   |               |       EtatUtilisateur.java
+|   |               |       Marque.java
+|   |               |       Panier.java
+|   |               |       Produit.java
+|   |               |       Role.java
+|   |               |       SimulerService.java
+|   |               |       Utilisateur.java
+|   |               |       
+|   |               +---token
+|   |               |       Token.java
+|   |               |       TokenRepository.java
+|   |               |       TokenType.java
+|   |               |       
+|   |               \---tool
+|   |                       Count.java
+|   |                       
+|   \---resources
+|           application.properties
+|           
+\---test
+    \---java
+        \---projetPFE
+            \---example
+                \---monProjet
+                        MonProjetApplicationTests.java
+                        
