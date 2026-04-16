@@ -11,9 +11,9 @@ import projetPFE.example.monProjet.config.JwtService;
 import projetPFE.example.monProjet.model.Etatutilisateur;
 import projetPFE.example.monProjet.model.Role;
 import projetPFE.example.monProjet.model.Utilisateur;
-import projetPFE.example.monProjet.repository.EtatutilisateurRepository;
-import projetPFE.example.monProjet.repository.RoleRepository;
 import projetPFE.example.monProjet.repository.UtilisateurRepository;
+import projetPFE.example.monProjet.factory.UserFactory;
+import projetPFE.example.monProjet.model.RoleType;
 import projetPFE.example.monProjet.token.Token;
 import projetPFE.example.monProjet.token.TokenRepository;
 import projetPFE.example.monProjet.token.TokenType;
@@ -27,8 +27,7 @@ public class AuthenticationService {
 private final UtilisateurRepository repository;
 private final PasswordEncoder passwordEncoder;
 private final JwtService jwtService;
-private final RoleRepository roleRepository;
-private final EtatutilisateurRepository etatRepository;
+private final UserFactory userFactory;
     @Autowired
     private UtilisateurRepository utilisateurRepository;
 
@@ -38,30 +37,17 @@ private final AuthenticationManager authenticationManager;
     private final TokenRepository tokenRepository;
 
     public AuthenticationResponse register(RegisterRequest request) {
-        Role defaultRole = roleRepository.findById(3).orElseThrow(() -> new RuntimeException("Default role not found"));
-        Etatutilisateur defaultEtat = etatRepository.findById(1).orElseThrow(() -> new RuntimeException("Default etat not found"));
-
-        var user = Utilisateur.builder()
-             .prenom(request.getPrenom())
-             .nomutilisateur(request.getNom())
-             .email(request.getEmail())
-                .telephone(request.getTelephone())
-                .adresse(request.getAdresse())
-                .ville(request.getAdresse())
-                .codepostal(request.getCodepostal())
-                .datenaissance(request.getDatenaissance())
-             .motdepasse(passwordEncoder.encode(request.getMotdepasse()))
-             .idRole(defaultRole)
-                .idEtat(defaultEtat)
-                .build();
-         var savedUser = repository.save(user);
+        var user = userFactory.createUser(
+                request, 
+                passwordEncoder.encode(request.getMotdepasse()), 
+                RoleType.CLIENT
+        );
+        var savedUser = repository.save(user);
         var jwtToken = jwtService.generateToken(user);
         saveUserToken(savedUser, jwtToken);
         return AuthenticationResponse.builder()
                 .token(jwtToken)
                 .build();
-
-
     }
 
 
