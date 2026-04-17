@@ -22,7 +22,7 @@ import projetPFE.example.monProjet.token.TokenType;
 
 @Service
 @RequiredArgsConstructor
-public class AuthenticationService {
+public class AuthenticationService implements IIdentityService {
 
 private final UtilisateurRepository repository;
 private final PasswordEncoder passwordEncoder;
@@ -37,6 +37,9 @@ private final AuthenticationManager authenticationManager;
     private final TokenRepository tokenRepository;
 
     public AuthenticationResponse register(RegisterRequest request) {
+        if (repository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("Un utilisateur avec cet email existe déjà.");
+        }
         var user = userFactory.createUser(
                 request, 
                 passwordEncoder.encode(request.getMotdepasse()), 
