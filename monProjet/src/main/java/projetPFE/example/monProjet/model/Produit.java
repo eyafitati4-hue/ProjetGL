@@ -108,6 +108,21 @@ public class Produit {
         this.nbportes = builder.nbportes;
         this.apportpropre = builder.apportpropre;
         this.loyer = builder.loyer;
+        
+        // GRASP - Expert: L'entité décide de son état de disponibilité
+        calculerDisponibilite();
+    }
+
+    /**
+     * @GRASP Expert
+     * Cette logique est placée ici car l'entité Produit possède l'information "quantite".
+     */
+    public void calculerDisponibilite() {
+        if (this.quantite != null && this.quantite > 0) {
+            this.disponibilite = "En Stock";
+        } else {
+            this.disponibilite = "Rupture de Stock";
+        }
     }
 
     public static ProduitBuilder builder() {

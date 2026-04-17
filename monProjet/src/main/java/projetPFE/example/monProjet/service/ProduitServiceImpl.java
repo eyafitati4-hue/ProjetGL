@@ -22,6 +22,8 @@ import java.util.stream.Collectors;
 public class ProduitServiceImpl implements ProduitService {
     @Autowired
     private ProduitRepository produitRepository;
+    
+    @Autowired
     private EtatproduitRepository etatproduitRepository;
 
     @Autowired
@@ -56,11 +58,15 @@ public class ProduitServiceImpl implements ProduitService {
     @Override
     public ProduitDto ajouterProduit(ProduitDto produitDto) {
         projetPFE.example.monProjet.model.Produit produit = ProduitDtoMapper.toEntity(produitDto);
-        double apportPropre = simulerService.calculerApportPropre(produit.getPrixproduit());
-        produit.setApportpropre(apportPropre);
+        
+        // Sécurisation contre les valeurs nulles pour éviter l'erreur 500
+        if (produit.getPrixproduit() != null) {
+            double apportPropre = simulerService.calculerApportPropre(produit.getPrixproduit());
+            produit.setApportpropre(apportPropre);
 
-        double loyer = simulerService.calculerLoyerMensuel(produit,7,produit.getApportpropre());
-        produit.setLoyer(loyer);
+            double loyer = simulerService.calculerLoyerMensuel(produit, 7, produit.getApportpropre());
+            produit.setLoyer(loyer);
+        }
 
         projetPFE.example.monProjet.model.Produit produitEnregistre = produitRepository.save(produit);
         return ProduitDtoMapper.toDto(produitEnregistre);
