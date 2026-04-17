@@ -7,7 +7,7 @@ import projetPFE.example.monProjet.DTO.DemandeDto;
 import projetPFE.example.monProjet.DTOmapper.DemandeDtoMapper;
 import projetPFE.example.monProjet.DTOmapper.EtatdemandeDtoMapper;
 import projetPFE.example.monProjet.DTOmapper.UtilisateurDtoMapper;
-import projetPFE.example.monProjet.auth.AuthenticationService;
+import projetPFE.example.monProjet.auth.IIdentityService;
 import projetPFE.example.monProjet.config.JwtService;
 import projetPFE.example.monProjet.interfac.DemandeInter;
 import projetPFE.example.monProjet.model.*;
@@ -40,7 +40,7 @@ public class Demande implements DemandeInter {
     private JwtService jwtService;
 
     @Autowired
-    private AuthenticationService authService;
+    private IIdentityService authService;
 
     @Override
     public projetPFE.example.monProjet.model.Demande getById(int id) {

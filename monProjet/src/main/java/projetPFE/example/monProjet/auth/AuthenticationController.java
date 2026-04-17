@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = "*") // Autoriser les requêtes CORS depuis http://localhost:4200
 
 public class AuthenticationController {
-    private final AuthenticationService service;
+    private final IIdentityService service;
 
     @PostMapping("/register")
     public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterRequest request) {
