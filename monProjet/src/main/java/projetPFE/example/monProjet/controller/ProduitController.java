@@ -4,7 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import projetPFE.example.monProjet.DTO.ProduitDto;
-import projetPFE.example.monProjet.interfac.ProduitInter;
+import projetPFE.example.monProjet.interfac.ProduitService;
 import projetPFE.example.monProjet.model.Produit;
 import projetPFE.example.monProjet.repository.ProduitRepository;
 
@@ -17,7 +17,7 @@ import java.util.List;
 public class ProduitController {
 
     @Autowired
-    private ProduitInter produitService;
+    private ProduitService produitService;
 
     @Autowired
     private ProduitRepository produitRepository;

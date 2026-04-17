@@ -37,4 +37,46 @@ public class Marque {
     @OneToMany(mappedBy="idmarque") // Corrected mappedBy attribute
      Set<Produit> produits= new HashSet<>();
 
-}
+    // --- MANUALLY IMPLEMENTED BUILDER PATTERN ---
+    private Marque(MarqueBuilder builder) {
+        this.idMarque = builder.idMarque;
+        this.nommarque = builder.nommarque;
+        this.logomarque = builder.logomarque;
+        this.etatmarque = builder.etatmarque;
+    }
+
+    public static MarqueBuilder builder() {
+        return new MarqueBuilder();
+    }
+
+    public static class MarqueBuilder {
+        private Integer idMarque;
+        private String nommarque;
+        private String logomarque;
+        private Integer etatmarque;
+
+        public MarqueBuilder idMarque(Integer idMarque) {
+            this.idMarque = idMarque;
+            return this;
+        }
+
+        public MarqueBuilder nommarque(String nommarque) {
+            this.nommarque = nommarque;
+            return this;
+        }
+
+        public MarqueBuilder logomarque(String logomarque) {
+            this.logomarque = logomarque;
+            return this;
+        }
+
+        public MarqueBuilder etatmarque(Integer etatmarque) {
+            this.etatmarque = etatmarque;
+            return this;
+        }
+
+        public Marque build() {
+            return new Marque(this);
+        }
+    }
+}

@@ -27,12 +27,12 @@ public class MarqueDtoMapper {
         if (marqueDto == null) {
             return null;
         }
-        Marque marque = new Marque();
-        marque.setIdMarque(marqueDto.getIdMarque());
-        marque.setNommarque(marqueDto.getNommarque());
-        marque.setLogomarque(marqueDto.getLogomarque());
-        marque.setEtatmarque(marqueDto.getEtatmarque());
-        // Vous devrez ajouter la logique pour mapper les produits ici si nécessaire
-        return marque;
+        return Marque.builder()
+                .idMarque(marqueDto.getIdMarque())
+                .nommarque(marqueDto.getNommarque())
+                .logomarque(marqueDto.getLogomarque())
+                .etatmarque(marqueDto.getEtatmarque())
+                .build();
     }
+
 }

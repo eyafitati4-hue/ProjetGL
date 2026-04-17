@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import projetPFE.example.monProjet.interfac.EtatproduitInter;
+import projetPFE.example.monProjet.interfac.EtatproduitService;
 import projetPFE.example.monProjet.model.Etatproduit;
 
 import java.util.List;
@@ -14,7 +14,7 @@ import java.util.List;
 
 public class EtatproduitController {
     @Autowired
-    private EtatproduitInter etatProduitService;
+    private EtatproduitService etatProduitService;
 
     @GetMapping("/{id}")
     public ResponseEntity<Etatproduit> getById(@PathVariable Integer id) {

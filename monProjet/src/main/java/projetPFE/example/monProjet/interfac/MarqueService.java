@@ -3,7 +3,7 @@ import projetPFE.example.monProjet.DTO.MarqueDto;
 import projetPFE.example.monProjet.model.Marque;
 
 import java.util.List;
-public interface MarqueInter {
+public interface MarqueService {
     MarqueDto getById(Integer id);
 
     List<MarqueDto> getAll();

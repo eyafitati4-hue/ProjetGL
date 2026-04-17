@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import projetPFE.example.monProjet.DTO.MarqueDto;
 import projetPFE.example.monProjet.DTOmapper.MarqueDtoMapper;
-import projetPFE.example.monProjet.interfac.MarqueInter;
+import projetPFE.example.monProjet.interfac.MarqueService;
 import projetPFE.example.monProjet.repository.MarqueRepository;
 
 import java.util.List;
@@ -12,7 +12,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-public class Marque implements MarqueInter {
+public class MarqueServiceImpl implements MarqueService {
 
 
     @Autowired
