@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.*;
 import projetPFE.example.monProjet.DTO.ProduitDto;
 import projetPFE.example.monProjet.interfac.ProduitService;
 import projetPFE.example.monProjet.model.Produit;
-import projetPFE.example.monProjet.repository.ProduitRepository;
 
 import java.util.List;
 
@@ -18,9 +17,6 @@ public class ProduitController {
 
     @Autowired
     private ProduitService produitService;
-
-    @Autowired
-    private ProduitRepository produitRepository;
     @GetMapping("/{id}")
     public ProduitDto getById(@PathVariable Integer id) {
         return produitService.getById(id);
@@ -64,7 +60,7 @@ public class ProduitController {
 
     @GetMapping("/countByEtatProduit/{etatId}")
     public ResponseEntity<Integer> getCountByEtatProduit(@PathVariable Integer etatId) {
-        Integer count = produitRepository.getCountByEtatProduit(etatId);
+        Integer count = produitService.getCountByEtatProduit(etatId);
         return ResponseEntity.ok().body(count);
     }
 }
