@@ -13,7 +13,8 @@ public class SimulerService  implements SimulerInter {
    private ProduitRepository produitRepository;
 
     private double tauxInteret = 20;
-    public double calculerApportPropre(int prixproduit){
+    public double calculerApportPropre(Integer prixproduit){
+        if (prixproduit == null) return 0;
         return (prixproduit * 10)/100 ;
     }
 
