@@ -33,6 +33,11 @@ public class Role {
     @Column(name = "labelrole", length = 254)
     private String labelrole;
 
+    public String getRedirectName() {
+        if (this.labelrole == null) return "guest";
+        return this.labelrole.toLowerCase();
+    }
+
 
    @OneToMany(mappedBy = "idRole",fetch = FetchType.LAZY)
     @JsonIgnore
