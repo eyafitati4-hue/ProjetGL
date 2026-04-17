@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import projetPFE.example.monProjet.DTO.ProduitDto;
 import projetPFE.example.monProjet.DTOmapper.ProduitDtoMapper;
 import projetPFE.example.monProjet.repository.ProduitRepository;
-import projetPFE.example.monProjet.service.Produit;
+import projetPFE.example.monProjet.interfac.ProduitService;
 import projetPFE.example.monProjet.service.SimulerService;
 
 @RestController
@@ -21,7 +21,7 @@ public class SimulerController {
     private ProduitRepository produitRepository;
 
     @Autowired
-    private Produit produitService;
+    private ProduitService produitService;
 
     @GetMapping("/calculerapportpropre")
     public double calculerApportPropre(@RequestParam int prixproduit){

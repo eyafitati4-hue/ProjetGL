@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import projetPFE.example.monProjet.DTO.ProduitDto;
 import projetPFE.example.monProjet.DTOmapper.EtatProduitDtoMapper;
 import projetPFE.example.monProjet.DTOmapper.ProduitDtoMapper;
-import projetPFE.example.monProjet.interfac.ProduitInter;
+import projetPFE.example.monProjet.interfac.ProduitService;
 import projetPFE.example.monProjet.model.Etatproduit;
 import projetPFE.example.monProjet.repository.EtatproduitRepository;
 import projetPFE.example.monProjet.repository.ProduitRepository;
@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 @Service
 
-public class Produit implements ProduitInter {
+public class ProduitServiceImpl implements ProduitService {
     @Autowired
     private ProduitRepository produitRepository;
     private EtatproduitRepository etatproduitRepository;

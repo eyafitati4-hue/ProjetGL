@@ -1,13 +1,13 @@
 package projetPFE.example.monProjet.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import projetPFE.example.monProjet.interfac.EtatproduitInter;
+import projetPFE.example.monProjet.interfac.EtatproduitService;
 import projetPFE.example.monProjet.repository.EtatproduitRepository;
 
 import java.util.List;
 
 @Service
-public class Etatproduit implements EtatproduitInter {
+public class EtatproduitServiceImpl implements EtatproduitService {
     @Autowired
     private EtatproduitRepository etatproduitRepository;
 

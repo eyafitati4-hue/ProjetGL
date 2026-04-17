@@ -41,28 +41,31 @@ public class ProduitDtoMapper {
 
 
     public static Produit toEntity(ProduitDto produitDto) {
-        Produit produit = new Produit();
-        produit.setIdProduit(produitDto.getIdProduit());
-        produit.setIdmarque(MarqueDtoMapper.toEntity(produitDto.getIdmarque()));
-        produit.setEtatproduit(EtatProduitDtoMapper.toEntity(produitDto.getEtatproduit()));
-        produit.setUtilisateur(UtilisateurDtoMapper.toEntity(produitDto.getIdutilisateur()));
-
-        produit.setModele(produitDto.getModele());
-        produit.setKilometrage(produitDto.getKilometrage());
-        produit.setPrixproduit(produitDto.getPrixproduit());
-        produit.setDescription(produitDto.getDescription());
-        produit.setImage(produitDto.getImage());
-        produit.setQuantite(produitDto.getQuantite());
-        produit.setNomproduit(produitDto.getNomproduit());
-        produit.setApportpropre(produitDto.getApportpropre());
-        produit.setLoyer(produitDto.getLoyer());
-        produit.setNbplaces(produitDto.getNbplaces());
-        produit.setCarrosserie(produitDto.getCarrosserie());
-        produit.setNbportes(produitDto.getNbportes());
-        produit.setDisponibilite(produitDto.getDisponibilite());
-        produit.setGarantie(produitDto.getGarantie());
-        return produit;
+        if (produitDto == null) {
+            return null;
+        }
+        return Produit.builder()
+                .idProduit(produitDto.getIdProduit())
+                .idmarque(MarqueDtoMapper.toEntity(produitDto.getIdmarque()))
+                .etatproduit(EtatProduitDtoMapper.toEntity(produitDto.getEtatproduit()))
+                .utilisateur(UtilisateurDtoMapper.toEntity(produitDto.getIdutilisateur()))
+                .modele(produitDto.getModele())
+                .kilometrage(produitDto.getKilometrage())
+                .prixproduit(produitDto.getPrixproduit())
+                .description(produitDto.getDescription())
+                .image(produitDto.getImage())
+                .quantite(produitDto.getQuantite())
+                .nomproduit(produitDto.getNomproduit())
+                .apportpropre(produitDto.getApportpropre())
+                .loyer(produitDto.getLoyer())
+                .nbplaces(produitDto.getNbplaces())
+                .carrosserie(produitDto.getCarrosserie())
+                .nbportes(produitDto.getNbportes())
+                .disponibilite(produitDto.getDisponibilite())
+                .garantie(produitDto.getGarantie())
+                .build();
     }
+
 
     public static Set<ProduitDto> toDtoSet(Set<Produit> produits) {
         Set<ProduitDto> dtoSet = new HashSet<>();

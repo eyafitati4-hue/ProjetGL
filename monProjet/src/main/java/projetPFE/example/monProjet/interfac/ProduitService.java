@@ -3,7 +3,7 @@ import projetPFE.example.monProjet.DTO.ProduitDto;
 import projetPFE.example.monProjet.model.Produit;
 
 import java.util.List;
-public interface ProduitInter {
+public interface ProduitService {
     ProduitDto getById(Integer id);
 
     List<ProduitDto> getAll();

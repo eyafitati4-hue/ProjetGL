@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import projetPFE.example.monProjet.DTO.MarqueDto;
-import projetPFE.example.monProjet.interfac.MarqueInter;
+import projetPFE.example.monProjet.interfac.MarqueService;
 import projetPFE.example.monProjet.model.Marque;
 
 import java.util.List;
@@ -17,7 +17,7 @@ import java.util.List;
 public class MarqueController {
 
     @Autowired
-    private MarqueInter marqueService;
+    private MarqueService marqueService;
 
     @GetMapping("/{id}")
     public MarqueDto getById(@PathVariable Integer id) {
