@@ -17,8 +17,7 @@ import projetPFE.example.monProjet.model.RoleType;
 import projetPFE.example.monProjet.token.Token;
 import projetPFE.example.monProjet.token.TokenRepository;
 import projetPFE.example.monProjet.token.TokenType;
-
-//import static jdk.internal.classfile.Classfile.build;
+import projetPFE.example.monProjet.exception.UserAlreadyExistsException;
 
 @Service
 @RequiredArgsConstructor
@@ -38,7 +37,7 @@ private final AuthenticationManager authenticationManager;
 
     public AuthenticationResponse register(RegisterRequest request) {
         if (repository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("Un utilisateur avec cet email existe déjà.");
+            throw new UserAlreadyExistsException("Un utilisateur avec cet email existe déjà.");
         }
         var user = userFactory.createUser(
                 request, 
