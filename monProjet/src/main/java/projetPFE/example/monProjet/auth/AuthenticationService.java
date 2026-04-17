@@ -47,6 +47,7 @@ private final AuthenticationManager authenticationManager;
         saveUserToken(savedUser, jwtToken);
         return AuthenticationResponse.builder()
                 .token(jwtToken)
+                .role(user.getIdRole().getRedirectName())
                 .build();
     }
 
@@ -61,15 +62,8 @@ private final AuthenticationManager authenticationManager;
         var user = repository.findByEmail(request.getEmail())
                 .orElseThrow();
         if (user.getIdEtat().getIdEtat()==1) {
-            String role ="";
-            //ajouter pour faire la redirection vers l'interface admin
-            if (user.getIdRole().getIdRole() == 1) {
-                role="admin";
-            } else if (user.getIdRole().getIdRole() == 2) {
-                role="concessionnaire";
-            }else if (user.getIdRole().getIdRole() == 3) {
-                role = "client";
-            }
+            // Le système appelle simplement la méthode générique (Polymorphisme)
+            String role = user.getIdRole().getRedirectName();
             var jwtToken = jwtService.generateToken(user);
             revokedAllUserTokens(user);
             saveUserToken(user, jwtToken);
