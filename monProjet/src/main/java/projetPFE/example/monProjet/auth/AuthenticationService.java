@@ -18,6 +18,7 @@ import projetPFE.example.monProjet.token.Token;
 import projetPFE.example.monProjet.token.TokenRepository;
 import projetPFE.example.monProjet.token.TokenType;
 import projetPFE.example.monProjet.exception.UserAlreadyExistsException;
+import projetPFE.example.monProjet.exception.AccountInactiveException;
 
 @Service
 @RequiredArgsConstructor
@@ -74,7 +75,7 @@ private final AuthenticationManager authenticationManager;
                     .role(role)
                     .build();
         }else{
-            throw new RuntimeException("Votre Compte est inactif");
+            throw new AccountInactiveException("Votre compte est inactif. Veuillez contacter un administrateur.");
         }
 
     }
