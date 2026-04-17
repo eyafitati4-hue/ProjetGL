@@ -13,6 +13,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import projetPFE.example.monProjet.token.Token;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -37,18 +40,25 @@ public class Utilisateur implements UserDetails {
     @Column(name = "idutilisateur", nullable = false)
     private Integer idutilisateur;
 
+    @NotBlank
     @Column(name = "nomutilisateur", length = 254)
     private String nomutilisateur;
 
+    @NotBlank
     @Column(name = "prenom", length = 254)
     private String prenom;
 
-    @Column(name = "email", length = 254)
+    @NotBlank(message = "L'email est obligatoire")
+    @Email(message = "Le format de l'adresse email est incorrect")
+    @Pattern(regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$", message = "Format d'email invalide")
+    @Column(name = "email", length = 254, unique = true)
     private String email;
 
+    @NotBlank
     @Column(name = "telephone", length = 254)
     private String telephone;
 
+    @NotBlank
     @Column(name = "motdepasse", length = 254)
     private String motdepasse;
 
@@ -62,6 +72,7 @@ public class Utilisateur implements UserDetails {
     private String codepostal;
 
     @Column(name = "datenaissance")
+    @jakarta.validation.constraints.Past(message = "La date de naissance doit être dans le passé")
     private LocalDate datenaissance;
 
 
@@ -84,6 +95,7 @@ public class Utilisateur implements UserDetails {
     @ManyToOne(fetch = FetchType.EAGER, optional = false) /* optional = false la colonne correspondante dans la table de rôle (idutilisateur) ne peut pas avoir de valeur null*/
     @OnDelete(action = OnDeleteAction.RESTRICT)
     @JsonIgnore
+    @jakarta.validation.constraints.NotNull(message = "Le rôle est obligatoire")
     @JoinColumn(name = "idRole", nullable = false)
     private Role idRole;
 
@@ -95,6 +107,7 @@ private List<Token> tokens ;
     //RELATION UTILISATEUR ETAT UTILISATEUR
     @ManyToOne(fetch = FetchType.LAZY) /* optional = false la colonne correspondante dans la table de rôle (idutilisateur) ne peut pas avoir de valeur null*/
     @OnDelete(action = OnDeleteAction.RESTRICT)
+    @jakarta.validation.constraints.NotNull(message = "L'état est obligatoire")
     @JoinColumn(name = "idEtat", nullable = false)
     @JsonIgnore
     private Etatutilisateur idEtat;
