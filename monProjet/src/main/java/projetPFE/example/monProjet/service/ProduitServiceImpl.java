@@ -57,6 +57,14 @@ public class ProduitServiceImpl implements ProduitService {
 
     @Override
     public ProduitDto ajouterProduit(ProduitDto produitDto) {
+        // --- Vérification Manuelle des Invariants OCL (Maîtrise) ---
+        if (produitDto.getPrixproduit() == null || produitDto.getPrixproduit() <= 0) {
+            throw new IllegalArgumentException("Erreur de saisie: prixproduit doit être > 0 (OCL)");
+        }
+        if (produitDto.getKilometrage() == null || produitDto.getKilometrage() < 0) {
+            throw new IllegalArgumentException("Erreur de saisie: kilometrage doit être >= 0 (OCL)");
+        }
+
         projetPFE.example.monProjet.model.Produit produit = ProduitDtoMapper.toEntity(produitDto);
         
         // Sécurisation contre les valeurs nulles pour éviter l'erreur 500
@@ -82,8 +90,11 @@ public class ProduitServiceImpl implements ProduitService {
           existingProduct.setKilometrage(produit.getKilometrage());
           existingProduct.setPrixproduit(produit.getPrixproduit());
           existingProduct.setDescription(produit.getDescription());
-          double nouvelApportPropre = simulerService.calculerApportPropre(produit.getPrixproduit()
-          );
+          
+          // --- Validation Manuelle OCL avant sauvegarde ---
+          existingProduct.validerInvariantsOCL();
+
+          double nouvelApportPropre = simulerService.calculerApportPropre(produit.getPrixproduit());
           existingProduct.setApportpropre(nouvelApportPropre);
           double nouveauLoyer = simulerService.modifierLoyerMensuel(7, existingProduct,produit.getApportpropre()); // Utilisez le nombre d'années approprié
           existingProduct = produitRepository.save(existingProduct);
