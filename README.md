@@ -31,7 +31,3 @@ Le projet met en œuvre les concepts fondamentaux de l'ingénierie logicielle :
 - **Gestionnaire de dépendances** : Maven
 - **Validation** : Jakarta Bean Validation & OCL manuel
 
-## <font color="#C3B1E1">Installation et Lancement</font>
-1. Clonez le dépôt :
-   ```bash
-   git clone https://github.com/votre-compte/ProjetGL.git
