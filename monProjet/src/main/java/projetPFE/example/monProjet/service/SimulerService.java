@@ -14,7 +14,10 @@ public class SimulerService  implements SimulerInter {
 
     private double tauxInteret = 20;
     public double calculerApportPropre(Integer prixproduit){
-        if (prixproduit == null) return 0;
+        // --- Application MANUELLE de la contrainte OCL ---
+        if (prixproduit == null || prixproduit <= 0) {
+            throw new IllegalArgumentException("OCL Violation: le prix doit être > 0 pour calculer l'apport");
+        }
         return (prixproduit * 10)/100 ;
     }
 

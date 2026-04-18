@@ -47,9 +47,11 @@ public class Produit {
     private String modele;
 
     @Column(name = "kilometrage")
+    /* OCL Invariant: context Produit inv: self.kilometrage >= 0 */
     private Integer kilometrage;
 
     @Column(name = "prixproduit")
+    /* OCL Invariant: context Produit inv: self.prixproduit > 0 */
     private Integer prixproduit;
 
     @Column(name = "description", length = 254)
@@ -108,9 +110,23 @@ public class Produit {
         this.nbportes = builder.nbportes;
         this.apportpropre = builder.apportpropre;
         this.loyer = builder.loyer;
-        
+        // -- Application Manuelle des Contraintes OCL --
+        validerInvariantsOCL();
         // GRASP - Expert: L'entité décide de son état de disponibilité
         calculerDisponibilite();
+    }
+
+    /**
+     * @GRASP Expert / OCL Invariant
+     * Protection du système contre les erreurs de saisie pour les calculs financiers.
+     */
+    public void validerInvariantsOCL() {
+        if (this.prixproduit != null && this.prixproduit <= 0) {
+            throw new IllegalArgumentException("OCL Violation: le prix doit être strictement supérieur à zéro");
+        }
+        if (this.kilometrage != null && this.kilometrage < 0) {
+            throw new IllegalArgumentException("OCL Violation: le kilométrage ne peut pas être négatif");
+        }
     }
 
     /**
@@ -243,4 +259,4 @@ public class Produit {
             return new Produit(this);
         }
     }
-}
+}
