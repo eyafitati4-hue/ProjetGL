@@ -121,11 +121,27 @@ public class Produit {
      * Protection du système contre les erreurs de saisie pour les calculs financiers.
      */
     public void validerInvariantsOCL() {
+        // 1. Contraintes de base
         if (this.prixproduit != null && this.prixproduit <= 0) {
             throw new IllegalArgumentException("OCL Violation: le prix doit être strictement supérieur à zéro");
         }
         if (this.kilometrage != null && this.kilometrage < 0) {
             throw new IllegalArgumentException("OCL Violation: le kilométrage ne peut pas être négatif");
+        }
+
+        // 2. Contrainte OCL Contextuelle (État vs Kilométrage)
+        if (this.etatproduit != null && this.etatproduit.getIdetatproduit() != null) {
+            int idEtat = this.etatproduit.getIdetatproduit();
+            
+            // État NEUF (1) -> Doit avoir 0 km
+            if (idEtat == 1 && this.kilometrage != null && this.kilometrage > 0) {
+                throw new IllegalArgumentException("OCL Violation: Un véhicule NEUF doit avoir un kilométrage de 0.");
+            }
+            
+            // État OCCASION/VENDU (> 1) -> Doit avoir > 0 km
+            if (idEtat > 1 && this.kilometrage != null && this.kilometrage == 0) {
+                throw new IllegalArgumentException("OCL Violation: Un véhicule d'OCCASION doit avoir un kilométrage > 0.");
+            }
         }
     }
 
