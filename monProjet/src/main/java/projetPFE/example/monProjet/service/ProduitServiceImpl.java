@@ -65,6 +65,17 @@ public class ProduitServiceImpl implements ProduitService {
             throw new IllegalArgumentException("Erreur de saisie: kilometrage doit être >= 0 (OCL)");
         }
 
+        // --- Vérification spécifique État / Kilométrage ---
+        if (produitDto.getEtatproduit() != null && produitDto.getEtatproduit().getIdetatproduit() != null) {
+            int idEtat = produitDto.getEtatproduit().getIdetatproduit();
+            if (idEtat == 1 && produitDto.getKilometrage() > 0) {
+                throw new IllegalArgumentException("Erreur OCL: Un véhicule NEUF ne peut pas avoir de kilomètres.");
+            }
+            if (idEtat > 1 && produitDto.getKilometrage() == 0) {
+                throw new IllegalArgumentException("Erreur OCL: Un véhicule d'OCCASION doit avoir un kilométrage > 0.");
+            }
+        }
+
         projetPFE.example.monProjet.model.Produit produit = ProduitDtoMapper.toEntity(produitDto);
         
         // Sécurisation contre les valeurs nulles pour éviter l'erreur 500
@@ -117,6 +128,9 @@ public class ProduitServiceImpl implements ProduitService {
             projetPFE.example.monProjet.model.Produit oldProduit = oldProduitOptional.get();
             if (newProduitDto.getEtatproduit() != null) {
                 oldProduit.setEtatproduit(EtatProduitDtoMapper.toEntity(newProduitDto.getEtatproduit()));
+
+                // --- Validation Manuelle OCL après changement d'état ---
+                oldProduit.validerInvariantsOCL();
 
                 produitRepository.save(oldProduit);
 
