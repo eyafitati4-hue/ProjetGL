@@ -13,8 +13,8 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Entity
-@Setter
 @Getter
+@Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
 @NoArgsConstructor(force = true)
 @Table(name = "devis", schema = "public")
@@ -41,6 +41,12 @@ public class Devi {
 
     @Column(name = "produit")
     private String produit;
+
+    @Column(name = "prixbase")
+    private Double prixbase;
+
+    @Column(name = "montantfinal")
+    private Double montantFinal;
 
 
 
