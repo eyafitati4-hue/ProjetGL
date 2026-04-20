@@ -48,4 +48,13 @@ public class DeviController {
         deviService.supprimerDevi(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/add-avec-options")
+    public ResponseEntity<Devi> ajouterDeviAvecOptions(
+            @RequestBody Devi devi,
+            @RequestParam(defaultValue = "false") boolean assurance,
+            @RequestParam(defaultValue = "false") boolean frais) {
+        Devi newDevi = deviService.ajouterDeviAvecOptions(devi, assurance, frais);
+        return ResponseEntity.status(HttpStatus.CREATED).body(newDevi);
+    }
 }
