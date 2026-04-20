@@ -56,13 +56,43 @@ public class Panier  implements PanierInter {
         panierRepository.deleteById(id);
     }
 
+    // --- Implémentation GRASP: Fabrication Pure ---
+    // Regroupement de la logique de gestion du panier et calcul des totaux
 
-    //ajout pour le panier
+    @Override
+    public void ajouterProduitAuPanier(Integer idProduit, Integer idPanier) {
+        // On vérifie l'existence du produit et du panier
+        if (!produitRepository.existsById(idProduit)) {
+            throw new RuntimeException("Produit non trouvé : " + idProduit);
+        }
+        if (!panierRepository.existsById(idPanier)) {
+            throw new RuntimeException("Panier non trouvé : " + idPanier);
+        }
 
+        Association10Id idAssoc = new Association10Id();
+        idAssoc.setIdPanier(idPanier);
+        idAssoc.setIdProduit(idProduit);
 
+        if (!associationRepository.existsById(idAssoc)) {
+            Association10 association = new Association10();
+            association.setId(idAssoc);
+            associationRepository.save(association);
+        }
+    }
 
-
-
-
-
+    @Override
+    public double calculerTotalHT(Integer idPanier) {
+        // On récupère toutes les lignes d'association pour ce panier
+        List<Association10> lignesPanier = associationRepository.findById_IdPanier(idPanier);
+        
+        double total = 0.0;
+        for (Association10 ligne : lignesPanier) {
+            // On récupère le prix du produit associé
+            Optional<projetPFE.example.monProjet.model.Produit> produit = produitRepository.findById(ligne.getId().getIdProduit());
+            if (produit.isPresent()) {
+                total += produit.get().getPrixproduit();
+            }
+        }
+        return total;
+    }
 }

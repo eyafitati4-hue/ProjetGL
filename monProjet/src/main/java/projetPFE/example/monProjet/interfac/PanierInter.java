@@ -14,5 +14,7 @@ public interface PanierInter {
 
     void supprimerPanier(Integer id);
 
-    //ajout pour le panier
+    // Méthodes de Fabrication Pure pour regrouper la logique
+    void ajouterProduitAuPanier(Integer idProduit, Integer idPanier);
+    double calculerTotalHT(Integer idPanier);
 }

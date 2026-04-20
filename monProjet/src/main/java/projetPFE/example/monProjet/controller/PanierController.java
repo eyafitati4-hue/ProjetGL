@@ -42,8 +42,21 @@ public class PanierController {
     public void supprimerPanier(@PathVariable Integer id) {
         panierService.supprimerPanier(id);
     }
-    //pour panier
 
+    // --- Endpoints de Fabrication Pure ---
 
+    @PostMapping("/{idPanier}/ajouter-produit/{idProduit}")
+    public ResponseEntity<String> ajouterProduit(@PathVariable Integer idPanier, @PathVariable Integer idProduit) {
+        try {
+            panierService.ajouterProduitAuPanier(idProduit, idPanier);
+            return ResponseEntity.ok("Produit ajouté au panier avec succès.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
 
+    @GetMapping("/{id}/total")
+    public double calculerTotal(@PathVariable Integer id) {
+        return panierService.calculerTotalHT(id);
+    }
 }
