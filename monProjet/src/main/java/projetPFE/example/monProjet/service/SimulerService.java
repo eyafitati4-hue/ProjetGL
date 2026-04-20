@@ -12,22 +12,17 @@ public class SimulerService  implements SimulerInter {
    @Autowired
    private ProduitRepository produitRepository;
 
-    private double tauxInteret = 20;
+   @Autowired
+   private CalculStrategy calculStrategy;
+
+
     public double calculerApportPropre(Integer prixproduit){
-        // --- Application MANUELLE de la contrainte OCL ---
-        if (prixproduit == null || prixproduit <= 0) {
-            throw new IllegalArgumentException("OCL Violation: le prix doit être > 0 pour calculer l'apport");
-        }
-        return (prixproduit * 10)/100 ;
+    return calculStrategy.calculerApport(prixproduit.doubleValue());
     }
 
-    public double calculerLoyerMensuel(Produit produit,int nombreAnnees, double nouvelApportPropre ){
-        double montantEmprunte = produit.getPrixproduit() - nouvelApportPropre;
-        int nombrePaiementsTotal = nombreAnnees * 12;
-        double tauxMensuel = tauxInteret / 12; // Conversion du taux annuel en taux mensuel
-        double interetsMensuels = montantEmprunte * (tauxMensuel / 100);
-        double loyerMensuel = (montantEmprunte + interetsMensuels) / nombrePaiementsTotal;
-        return loyerMensuel;
+
+    public double calculerLoyerMensuel(Produit produit, int nombreAnnees, double nouvelApportPropre){
+        return calculStrategy.calculerLoyer(produit, nombreAnnees, nouvelApportPropre);
     }
 
 
@@ -39,13 +34,15 @@ public class SimulerService  implements SimulerInter {
     }
 
 
-    public double modifierApportPropre(double nouvelApportPropre, Produit produit , int nombreAnnees) {
+
+       public double modifierApportPropre(double nouvelApportPropre, Produit produit , int nombreAnnees) {
       //  produit.setApportpropre(nouvelApportPropre);
         double nouveauLoyer = calculerLoyerMensuel(produit,nombreAnnees,nouvelApportPropre);
        // produit.setLoyer(nouveauLoyer);
        // produitRepository.save(produit);
         return nouvelApportPropre;
     }
+
 
 
 
