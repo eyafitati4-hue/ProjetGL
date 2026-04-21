@@ -15,23 +15,30 @@ import projetPFE.example.monProjet.model.Utilisateur;
 public class Token {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Integer id ;
-    private String token ;
+    private Integer id;
+    private String token;
 
-
-
-    @Enumerated(EnumType.STRING )
+    @Enumerated(EnumType.STRING)
     private TokenType tokenType;
 
-    private boolean expired ;
-    private  boolean revoked ;
+    private boolean expired;
+    private boolean revoked;
 
     @ManyToOne
     @JoinColumn(name = "idutilisateur")
-    private Utilisateur utilisateur ;
+    private Utilisateur utilisateur;
 
-
-
-
+    /**
+     * SOLID — SRP : Token est responsable de sa propre validité.
+     * Cette méthode exprime la règle métier du token.
+     * Avant : la logique était dispersée dans JwtAuthenticationFilter.
+     *
+     * @return true si le token représente une session active
+     */
+    public boolean isSessionActive() {
+        System.out.println("[Token SRP] isSessionActive() → expired="
+                + expired + " revoked=" + revoked);
+        return !expired && !revoked;
+    }
 
 }
