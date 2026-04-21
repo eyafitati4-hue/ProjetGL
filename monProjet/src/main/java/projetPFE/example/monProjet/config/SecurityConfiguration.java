@@ -21,7 +21,7 @@ import org.springframework.security.web.authentication.logout.LogoutHandler;
 public class SecurityConfiguration {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
-    private AuthenticationProvider authenticationProvider;
+    private final AuthenticationProvider authenticationProvider;
 
     private  final LogoutHandler LogoutHandler ;
     @Bean
@@ -31,14 +31,16 @@ public class SecurityConfiguration {
                 // Désactiver CSRF
                 .csrf(AbstractHttpConfigurer::disable)
                 // Autoriser toutes les requêtes vers /api/v1/auth/ sans authentification
-             /*   .authorizeHttpRequests(auth -> auth
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/v1/auth/**").permitAll()
+
                         .requestMatchers("/roles/**").permitAll()
                         .anyRequest().authenticated()
-                )*/
+                )
                 // Définir la politique de gestion de session sur STATELESS
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                //.authenticationProvider(authenticationProvider)
-                //.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .authenticationProvider(authenticationProvider)
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 // Configuration du logout
                 .logout(logout -> logout
                         // URL de déconnexion

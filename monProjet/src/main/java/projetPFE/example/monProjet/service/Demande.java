@@ -77,7 +77,7 @@ public class Demande implements DemandeInter {
             Association4 nouvelleAssociation = new Association4();
             Association4Id associationId = new Association4Id();
             associationId.setIddocument(i);
-            associationId.setIddemande(demandeSauvegardee.getDemande());
+            associationId.setIddemande(demandeSauvegardee.getIdDemande());
             nouvelleAssociation.setId(associationId);
             association4Repository.save(nouvelleAssociation);
 
@@ -87,7 +87,7 @@ public class Demande implements DemandeInter {
     }
     @Override
     public projetPFE.example.monProjet.model.Demande modifierDemande(projetPFE.example.monProjet.model.Demande demande) {
-        if (demandeRepository.existsById(demande.getDemande())) {
+        if (demandeRepository.existsById(demande.getIdDemande())) {
             return demandeRepository.save(demande);
         } else {
             return null;
@@ -111,7 +111,7 @@ public class Demande implements DemandeInter {
         if (oldDemandeOptional.isPresent()) {
             projetPFE.example.monProjet.model.Demande oldDemandeEntity = oldDemandeOptional.get();
             if (newDemandeDto.getIdetatdemade() != null) {
-                oldDemandeEntity.setEtatdemande(EtatdemandeDtoMapper.toEntity(newDemandeDto.getIdetatdemade()));
+                oldDemandeEntity.setIdetatdemade(EtatdemandeDtoMapper.toEntity(newDemandeDto.getIdetatdemade()));
 
                 demandeRepository.save(oldDemandeEntity);
 
@@ -132,7 +132,7 @@ public class Demande implements DemandeInter {
             throw new IllegalArgumentException("Utilisateur introuvable pour cet email.");
         }
 
-        List<projetPFE.example.monProjet.model.Demande> demandes = demandeRepository.findByUtilisateur(utilisateur.get());
+        List<projetPFE.example.monProjet.model.Demande> demandes = demandeRepository.findByIdutilisateur(utilisateur.get());
         return demandes.stream().map(DemandeDtoMapper::toDto).collect(Collectors.toList());
     }
 

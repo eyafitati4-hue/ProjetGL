@@ -79,7 +79,7 @@ public class Utilisateur implements UserDetails {
 
     //relation entre utilisateur et demande
     @JsonIgnore
-    @OneToMany(mappedBy = "utilisateur" ,cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "idutilisateur" ,cascade = CascadeType.ALL)
     private Set<Demande> demandes = new LinkedHashSet<>();
 
 
