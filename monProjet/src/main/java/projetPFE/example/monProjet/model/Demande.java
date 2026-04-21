@@ -8,6 +8,7 @@ import projetPFE.example.monProjet.decorator.AssuranceDecorator;
 import projetPFE.example.monProjet.decorator.DevisBase;
 import projetPFE.example.monProjet.decorator.DevisComponent;
 import projetPFE.example.monProjet.decorator.FraisDossierDecorator;
+import projetPFE.example.monProjet.state.*;
 
 import java.time.LocalDate;
 
@@ -69,6 +70,47 @@ public class Demande {
     @ManyToOne
     @JoinColumn(name = "iddevis")
     private Devi devis;
+
+    @Transient
+    private DemandeState currentState;
+
+    /**
+     * Initialise l'état du State Pattern après le chargement depuis la DB.
+     */
+    @PostLoad
+    private void initMappingState() {
+        if (this.idetatdemade == null) {
+            this.currentState = new EtatEnAttente();
+            return;
+        }
+
+        switch (this.idetatdemade.getIdetatdemande()) {
+            case 1 -> this.currentState = new EtatEnAttente();
+            case 2 -> this.currentState = new EtatEnCours();
+            case 3 -> this.currentState = new EtatValidee();
+            case 4 -> this.currentState = new EtatRejetee();
+            default -> this.currentState = new EtatEnAttente();
+        }
+    }
+
+    public void setState(DemandeState state) {
+        this.currentState = state;
+        // Synchronisation avec l'entité persistante (on suppose les IDs 1, 2, 3, 4)
+        if (this.idetatdemade == null) {
+            this.idetatdemade = new Etatdemande();
+        }
+        
+        if (state instanceof EtatEnAttente) this.idetatdemade.setIdetatdemande(1);
+        else if (state instanceof EtatEnCours) this.idetatdemade.setIdetatdemande(2);
+        else if (state instanceof EtatValidee) this.idetatdemade.setIdetatdemande(3);
+        else if (state instanceof EtatRejetee) this.idetatdemade.setIdetatdemande(4);
+    }
+
+    // Méthodes de transition déléguées
+    public void valider() { currentState.valider(this); }
+    public void rejeter() { currentState.rejeter(this); }
+    public void annuler() { currentState.annuler(this); }
+    public void supprimer() { currentState.supprimer(this); }
 
     public void setDemande(int id) {
         this.idDemande = id;
