@@ -2,6 +2,7 @@ package projetPFE.example.monProjet.auth;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,8 +21,9 @@ import projetPFE.example.monProjet.exception.UserAlreadyExistsException;
 import projetPFE.example.monProjet.exception.AccountInactiveException;
 
 @Service
+@Primary
 @RequiredArgsConstructor
-public class AuthenticationService implements IIdentityService {
+public class AuthenticationService implements IIdentityService , ISessionService{
 
     private final UtilisateurRepository repository;
     private final PasswordEncoder passwordEncoder;
@@ -152,4 +154,42 @@ public class AuthenticationService implements IIdentityService {
             return null;
         }
     }
+    @Override
+    public boolean isConnected(String token) {
+        System.out.println("[AuthService-Mediateur] isConnected()");
+        try {
+            String email = jwtService.extractNomUtilisateur(token);
+            if (email == null) return false;
+            return tokenRepository.findByToken(token)
+                    .map(t -> !t.isExpired() && !t.isRevoked())
+                    .orElse(false);
+        } catch (Exception e) { return false; }
+    }
+
+    @Override
+    public void invalidateSession(String token) {
+        System.out.println("[AuthService-Mediateur] invalidateSession()");
+        tokenRepository.findByToken(token).ifPresent(t -> {
+            t.setRevoked(true); t.setExpired(true);
+            tokenRepository.save(t);
+        });
+    }
+
+    @Override
+    public SessionInfo getSessionInfo(String token) {
+        System.out.println("[AuthService-Mediateur] getSessionInfo()");
+        try {
+            String email = jwtService.extractNomUtilisateur(token);
+            boolean active = isConnected(token);
+            String role = tokenRepository.findByToken(token)
+                .map(t -> t.getUtilisateur().getIdRole().getLabelrole())
+                .orElse("UNKNOWN");
+            return SessionInfo.builder()
+                .email(email).role(role).active(active)
+                .sessionType("JWT").build();
+        } catch (Exception e) {
+            return SessionInfo.builder().active(false).sessionType("JWT").build();
+        }
+    }
+
 }
