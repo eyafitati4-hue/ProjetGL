@@ -7,9 +7,9 @@ import projetPFE.example.monProjet.model.Demande;
 public class DemandeDtoMapper {
     public static DemandeDto toDto(Demande demande) {
         return DemandeDto.builder()
-                .idDemande(demande.getDemande())
-                .idutilisateur(UtilisateurDtoMapper.toDto(demande.getUtilisateur()))
-                .idetatdemade(EtatdemandeDtoMapper.toDto(demande.getEtatdemande()))
+                .idDemande(demande.getIdDemande())
+                .idutilisateur(UtilisateurDtoMapper.toDto(demande.getIdutilisateur()))
+                .idetatdemade(EtatdemandeDtoMapper.toDto(demande.getIdetatdemade()))
                 .iddevis(DeviDtoMapper.toDto(demande.getDevis()))
                 .date(demande.getDate())
                 .montant(demande.getMontant())
@@ -27,8 +27,8 @@ public class DemandeDtoMapper {
     public static Demande toEntity(DemandeDto demandeDto) {
         Demande demande = new Demande();
         demande.setDemande(demandeDto.getIdDemande());
-        demande.setUtilisateur(UtilisateurDtoMapper.toEntity(demandeDto.getIdutilisateur()));
-        demande.setEtatdemande(EtatdemandeDtoMapper.toEntity(demandeDto.getIdetatdemade()));
+        demande.setIdutilisateur(UtilisateurDtoMapper.toEntity(demandeDto.getIdutilisateur()));
+        demande.setIdetatdemade(EtatdemandeDtoMapper.toEntity(demandeDto.getIdetatdemade()));
         demande.setDevis(DeviDtoMapper.toEntity(demandeDto.getIddevis()));
         demande.setDate(demandeDto.getDate());
         demande.setMontant(demandeDto.getMontant());

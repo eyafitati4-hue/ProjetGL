@@ -28,7 +28,7 @@ public class Etatdemande {
     @Column(name = "labelleetatdemande", length = 254)
     private String labelleetatdemande;
 
-    @OneToMany(mappedBy = "etatdemande")
+    @OneToMany(mappedBy = "idetatdemade")
     @JsonIgnore
     private Set<Demande> demandes = new LinkedHashSet<>();
 

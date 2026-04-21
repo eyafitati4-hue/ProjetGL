@@ -8,8 +8,8 @@ import projetPFE.example.monProjet.model.Utilisateur;
 import java.util.List;
 
 public interface DemandeRepository extends JpaRepository<Demande, Integer> {
-    @Query("SELECT COUNT(d) FROM Demande d WHERE d.etatdemande.idetatdemande = ?1")
+    @Query("SELECT COUNT(d) FROM Demande d WHERE d.idetatdemade.idetatdemande = ?1")
     int countByEtatDemande_Idetatdemande(int etatDemandeId);
-    List<Demande> findByUtilisateur(Utilisateur utilisateur);
+    List<Demande> findByIdutilisateur(Utilisateur utilisateur);
 
 }
