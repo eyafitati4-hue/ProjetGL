@@ -23,8 +23,8 @@ import projetPFE.example.monProjet.security.filter.RoleAuthorizationFilter;
 public class SecurityConfiguration {
 
     // ── Les 3 maillons de la chaîne (injectés par Spring) ───────────────
-    private final TokenExtractionFilter   tokenExtractionFilter;
-    private final TokenValidationFilter   tokenValidationFilter;
+    private final TokenExtractionFilter tokenExtractionFilter;
+    private final TokenValidationFilter tokenValidationFilter;
     private final RoleAuthorizationFilter roleAuthorizationFilter;
 
     // ── Fournisseur d'authentification (défini dans ApplicatioConfig) ───
@@ -36,45 +36,45 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // 1. Désactiver CSRF (API REST stateless)
-            .csrf(AbstractHttpConfigurer::disable)
+                // 1. Désactiver CSRF (API REST stateless)
+                .csrf(AbstractHttpConfigurer::disable)
 
-            // 2. Règles d'autorisation
-            .authorizeHttpRequests(auth -> auth
-                // Routes publiques : register + authenticate
-                .requestMatchers("/api/v1/auth/**").permitAll()
-                // Toutes les autres routes nécessitent un token valide
-                .anyRequest().authenticated()
-            )
+                // 2. Règles d'autorisation
+                .authorizeHttpRequests(auth -> auth
+                        // Routes publiques : register + authenticate
+                        .requestMatchers("/api/v1/auth/**").permitAll()
 
-            // 3. Session STATELESS (JWT, pas de session HTTP)
-            .sessionManagement(sess ->
-                sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                        .requestMatchers("/api/test/**").authenticated() //Gof Chain of responsability tests
+                        .requestMatchers("/api/session/**").authenticated() // test for Indirection GRASP
 
-            // 4. Fournisseur d'authentification DAO
-            .authenticationProvider(authenticationProvider)
+                        // Toutes les autres routes nécessitent un token valide
+                        .anyRequest().authenticated())
 
-            // ════════════════════════════════════════════════════════════
-            // 5. CHAÎNE — Maillon 1 → 2 → 3
-            // ════════════════════════════════════════════════════════════
-            .addFilterBefore(tokenExtractionFilter,
-                             UsernamePasswordAuthenticationFilter.class)
-            .addFilterAfter(tokenValidationFilter,
-                            TokenExtractionFilter.class)
-            .addFilterAfter(roleAuthorizationFilter,
-                            TokenValidationFilter.class)
+                // 3. Session STATELESS (JWT, pas de session HTTP)
+                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-            // 6. Déconnexion
-            .logout(logout -> logout
-                .logoutUrl("/api/v1/auth/logout")
-                .addLogoutHandler(logoutHandler)
-                .logoutSuccessHandler((request, response, authentication) -> {
-                    SecurityContextHolder.clearContext();
-                    response.setStatus(HttpServletResponse.SC_OK);
-                })
-            );
+                // 4. Fournisseur d'authentification DAO
+                .authenticationProvider(authenticationProvider)
+
+                // ════════════════════════════════════════════════════════════
+                // 5. CHAÎNE — Maillon 1 → 2 → 3
+                // ════════════════════════════════════════════════════════════
+                .addFilterBefore(tokenExtractionFilter,
+                        UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(tokenValidationFilter,
+                        TokenExtractionFilter.class)
+                .addFilterAfter(roleAuthorizationFilter,
+                        TokenValidationFilter.class)
+
+                // 6. Déconnexion
+                .logout(logout -> logout
+                        .logoutUrl("/api/v1/auth/logout")
+                        .addLogoutHandler(logoutHandler)
+                        .logoutSuccessHandler((request, response, authentication) -> {
+                            SecurityContextHolder.clearContext();
+                            response.setStatus(HttpServletResponse.SC_OK);
+                        }));
 
         return http.build();
     }
 }
-
