@@ -1,6 +1,5 @@
 package projetPFE.example.monProjet.config;
 
-import jakarta.servlet.Filter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -14,58 +13,68 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
+import projetPFE.example.monProjet.security.filter.TokenValidationFilter;
+import projetPFE.example.monProjet.security.filter.TokenExtractionFilter;
+import projetPFE.example.monProjet.security.filter.RoleAuthorizationFilter;
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfiguration {
 
-    private final JwtAuthenticationFilter jwtAuthFilter;
+    // ── Les 3 maillons de la chaîne (injectés par Spring) ───────────────
+    private final TokenExtractionFilter   tokenExtractionFilter;
+    private final TokenValidationFilter   tokenValidationFilter;
+    private final RoleAuthorizationFilter roleAuthorizationFilter;
+
+    // ── Fournisseur d'authentification (défini dans ApplicatioConfig) ───
     private final AuthenticationProvider authenticationProvider;
 
-    private  final LogoutHandler LogoutHandler ;
+    // ── Handler de déconnexion (LogoutService) ───────────────────────────
+    private final LogoutHandler logoutHandler;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                //j'ai une copie d'une ancienne version de cette methode dans note
-                // Désactiver CSRF
-                .csrf(AbstractHttpConfigurer::disable)
-                // Autoriser toutes les requêtes vers /api/v1/auth/ sans authentification
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**").permitAll()
+            // 1. Désactiver CSRF (API REST stateless)
+            .csrf(AbstractHttpConfigurer::disable)
 
-                        .requestMatchers("/roles/**").permitAll()
-                        .anyRequest().authenticated()
-                )
-                // Définir la politique de gestion de session sur STATELESS
-                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authenticationProvider(authenticationProvider)
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                // Configuration du logout
-                .logout(logout -> logout
-                        // URL de déconnexion
-                        .logoutUrl("/api/v1/auth/logout")
-                        // Gestionnaire de déconnexion personnalisé
-                        // Ajouter un LogoutHandler personnalisé
-                        .addLogoutHandler(LogoutHandler )
-                        .logoutSuccessHandler((request, response, authentication) -> {
-                            // Logique à exécuter après la déconnexion réussie
-                            SecurityContextHolder.clearContext();
-                            response.setStatus(HttpServletResponse.SC_OK);
-                        })
-                );
+            // 2. Règles d'autorisation
+            .authorizeHttpRequests(auth -> auth
+                // Routes publiques : register + authenticate
+                .requestMatchers("/api/v1/auth/**").permitAll()
+                // Toutes les autres routes nécessitent un token valide
+                .anyRequest().authenticated()
+            )
+
+            // 3. Session STATELESS (JWT, pas de session HTTP)
+            .sessionManagement(sess ->
+                sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+            // 4. Fournisseur d'authentification DAO
+            .authenticationProvider(authenticationProvider)
+
+            // ════════════════════════════════════════════════════════════
+            // 5. CHAÎNE — Maillon 1 → 2 → 3
+            // ════════════════════════════════════════════════════════════
+            .addFilterBefore(tokenExtractionFilter,
+                             UsernamePasswordAuthenticationFilter.class)
+            .addFilterAfter(tokenValidationFilter,
+                            TokenExtractionFilter.class)
+            .addFilterAfter(roleAuthorizationFilter,
+                            TokenValidationFilter.class)
+
+            // 6. Déconnexion
+            .logout(logout -> logout
+                .logoutUrl("/api/v1/auth/logout")
+                .addLogoutHandler(logoutHandler)
+                .logoutSuccessHandler((request, response, authentication) -> {
+                    SecurityContextHolder.clearContext();
+                    response.setStatus(HttpServletResponse.SC_OK);
+                })
+            );
+
         return http.build();
-
     }
-
-
-/*.logout()
-    .logoutUrl("/api/v1/auth/logout")
-.addLogaoutHandler(null)
-    .logoutSuccessHandler((request,response ,authentication)->SecurityContextHolder.clearContext)*/
-
-
-
-
 }
 
