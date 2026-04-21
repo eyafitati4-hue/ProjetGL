@@ -111,11 +111,25 @@ public class Demande implements DemandeInter {
         if (oldDemandeOptional.isPresent()) {
             projetPFE.example.monProjet.model.Demande oldDemandeEntity = oldDemandeOptional.get();
             if (newDemandeDto.getIdetatdemade() != null) {
-                oldDemandeEntity.setIdetatdemade(EtatdemandeDtoMapper.toEntity(newDemandeDto.getIdetatdemade()));
+                int nextEtatId = newDemandeDto.getIdetatdemade().getIdetatdemande();
+                
+                try {
+                    // Logique de transition intelligente via le State Pattern
+                    if (nextEtatId == 2 || nextEtatId == 3) {
+                        oldDemandeEntity.valider();
+                    } else if (nextEtatId == 4) {
+                        oldDemandeEntity.rejeter();
+                    } else {
+                        // Par défaut, on tente de forcer mais le State Pattern bloquera si invalide
+                        oldDemandeEntity.setIdetatdemade(EtatdemandeDtoMapper.toEntity(newDemandeDto.getIdetatdemade()));
+                    }
 
-                demandeRepository.save(oldDemandeEntity);
-
-                return DemandeDtoMapper.toDto(oldDemandeEntity);
+                    demandeRepository.save(oldDemandeEntity);
+                    return DemandeDtoMapper.toDto(oldDemandeEntity);
+                    
+                } catch (IllegalStateException e) {
+                    throw new IllegalArgumentException("Transition d'état refusée : " + e.getMessage());
+                }
             } else {
                 return null;
             }
