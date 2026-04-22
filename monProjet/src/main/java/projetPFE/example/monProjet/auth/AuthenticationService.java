@@ -1,6 +1,9 @@
 package projetPFE.example.monProjet.auth;
 
 import lombok.RequiredArgsConstructor;
+
+import java.time.LocalDateTime;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,7 +26,7 @@ import projetPFE.example.monProjet.exception.AccountInactiveException;
 @Service
 @Primary
 @RequiredArgsConstructor
-public class AuthenticationService implements IIdentityService , ISessionService{
+public class AuthenticationService implements IIdentityService, ISessionService {
 
     private final UtilisateurRepository repository;
     private final PasswordEncoder passwordEncoder;
@@ -41,7 +44,7 @@ public class AuthenticationService implements IIdentityService , ISessionService
             throw new UserAlreadyExistsException("Un utilisateur avec cet email existe déjà.");
         }
 
-        // Déterminer le rôle 
+        // Déterminer le rôle
         RoleType roleType = RoleType.CLIENT;
         Integer requestedRoleId = null;
 
@@ -130,16 +133,20 @@ public class AuthenticationService implements IIdentityService , ISessionService
     }
 
     private void saveUserToken(Utilisateur user, String jwtToken) {
+        // Calculer la date d'expiration (identique à JwtService : 10 minutes)
+        LocalDateTime expirationDate = LocalDateTime.now().plusMinutes(10);
+
         var token = Token.builder()
                 .utilisateur(user)
                 .token(jwtToken)
                 .tokenType(TokenType.BEARER)
                 .revoked(false)
                 .expired(false)
+                .expirationDate(expirationDate) // NOUVEAU — OCL Invariant
                 .build();
-        System.out.println(token);
-        tokenRepository.save(token);
 
+        System.out.println("[OCL] Token créé avec expirationDate=" + expirationDate);
+        tokenRepository.save(token);
     }
 
     public Utilisateur getUserIdFromToken(String jwtToken) {
@@ -154,23 +161,28 @@ public class AuthenticationService implements IIdentityService , ISessionService
             return null;
         }
     }
+
     @Override
     public boolean isConnected(String token) {
         System.out.println("[AuthService-Mediateur] isConnected()");
         try {
             String email = jwtService.extractNomUtilisateur(token);
-            if (email == null) return false;
+            if (email == null)
+                return false;
             return tokenRepository.findByToken(token)
                     .map(t -> !t.isExpired() && !t.isRevoked())
                     .orElse(false);
-        } catch (Exception e) { return false; }
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     @Override
     public void invalidateSession(String token) {
         System.out.println("[AuthService-Mediateur] invalidateSession()");
         tokenRepository.findByToken(token).ifPresent(t -> {
-            t.setRevoked(true); t.setExpired(true);
+            t.setRevoked(true);
+            t.setExpired(true);
             tokenRepository.save(t);
         });
     }
@@ -182,11 +194,11 @@ public class AuthenticationService implements IIdentityService , ISessionService
             String email = jwtService.extractNomUtilisateur(token);
             boolean active = isConnected(token);
             String role = tokenRepository.findByToken(token)
-                .map(t -> t.getUtilisateur().getIdRole().getLabelrole())
-                .orElse("UNKNOWN");
+                    .map(t -> t.getUtilisateur().getIdRole().getLabelrole())
+                    .orElse("UNKNOWN");
             return SessionInfo.builder()
-                .email(email).role(role).active(active)
-                .sessionType("JWT").build();
+                    .email(email).role(role).active(active)
+                    .sessionType("JWT").build();
         } catch (Exception e) {
             return SessionInfo.builder().active(false).sessionType("JWT").build();
         }
