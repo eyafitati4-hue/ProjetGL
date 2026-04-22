@@ -50,7 +50,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(org.springframework.dao.DataIntegrityViolationException ex) {
-        String message = "Erreur d'intégrité des données. Cet email est probablement déjà utilisé.";
+        String message = "Erreur d'intégrité des données : " + (ex.getRootCause() != null ? ex.getRootCause().getMessage() : ex.getMessage());
         ErrorResponse error = new ErrorResponse(message, System.currentTimeMillis());
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }

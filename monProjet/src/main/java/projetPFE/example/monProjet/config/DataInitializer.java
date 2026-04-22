@@ -21,6 +21,15 @@ public class DataInitializer implements CommandLineRunner {
         jdbcTemplate.execute("INSERT INTO role (idrole, labelrole) VALUES (2, 'CONCESSIONNAIRE') ON CONFLICT (idrole) DO NOTHING");
         jdbcTemplate.execute("INSERT INTO role (idrole, labelrole) VALUES (3, 'CLIENT') ON CONFLICT (idrole) DO NOTHING");
         
-        System.out.println("Données initiales (Rôles & Etat) ont été chargées avec succès !");
+        // Injecter les etats de demande attendus
+        jdbcTemplate.execute("INSERT INTO etatdemande (idetatdemande, labelleetatdemande) VALUES (1, 'EN_ATTENTE') ON CONFLICT (idetatdemande) DO NOTHING");
+        jdbcTemplate.execute("INSERT INTO etatdemande (idetatdemande, labelleetatdemande) VALUES (2, 'EN_COURS') ON CONFLICT (idetatdemande) DO NOTHING");
+        jdbcTemplate.execute("INSERT INTO etatdemande (idetatdemande, labelleetatdemande) VALUES (3, 'VALIDEE') ON CONFLICT (idetatdemande) DO NOTHING");
+        jdbcTemplate.execute("INSERT INTO etatdemande (idetatdemande, labelleetatdemande) VALUES (4, 'REJETEE') ON CONFLICT (idetatdemande) DO NOTHING");
+
+        // Injecter un devis par défaut pour satisfaire la contrainte de clé étrangère dans DemandeService
+        jdbcTemplate.execute("INSERT INTO devis (iddevis, produit) VALUES (1, 'Devis Par Défaut') ON CONFLICT (iddevis) DO NOTHING");
+
+        System.out.println("Données initiales (Rôles, Etat, EtatDemande, Devis) ont été chargées avec succès !");
     }
 }

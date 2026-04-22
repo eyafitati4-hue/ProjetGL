@@ -112,16 +112,25 @@ public class Demande implements DemandeInter {
             projetPFE.example.monProjet.model.Demande oldDemandeEntity = oldDemandeOptional.get();
             if (newDemandeDto.getIdetatdemade() != null) {
                 int nextEtatId = newDemandeDto.getIdetatdemade().getIdetatdemande();
+                int currentStateId = oldDemandeEntity.getIdetatdemade() != null 
+                        ? oldDemandeEntity.getIdetatdemade().getIdetatdemande() : 1;
                 
                 try {
-                    // Logique de transition intelligente via le State Pattern
-                    if (nextEtatId == 2 || nextEtatId == 3) {
+                    // Si l'état demandé est déjà l'état actuel, on ne fait rien.
+                    if (currentStateId == nextEtatId) {
+                        // Pas d'action requise
+                    } 
+                    // Si on demande à passer à l'étape suivante logique
+                    else if ((currentStateId == 1 && nextEtatId == 2) || (currentStateId == 2 && nextEtatId == 3)) {
                         oldDemandeEntity.valider();
-                    } else if (nextEtatId == 4) {
+                    } 
+                    // Si on demande le rejet
+                    else if (nextEtatId == 4) {
                         oldDemandeEntity.rejeter();
-                    } else {
-                        // Par défaut, on tente de forcer mais le State Pattern bloquera si invalide
-                        oldDemandeEntity.setIdetatdemade(EtatdemandeDtoMapper.toEntity(newDemandeDto.getIdetatdemade()));
+                    } 
+                    // Sinon, tentative invalide
+                    else {
+                        throw new IllegalStateException("Transition de l'état " + currentStateId + " vers " + nextEtatId + " est invalide ou ne respecte pas l'ordre (1 -> 2 -> 3).");
                     }
 
                     demandeRepository.save(oldDemandeEntity);
