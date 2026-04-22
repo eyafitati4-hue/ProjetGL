@@ -96,14 +96,23 @@ public class Demande {
     public void setState(DemandeState state) {
         this.currentState = state;
         // Synchronisation avec l'entité persistante (on suppose les IDs 1, 2, 3, 4)
-        if (this.idetatdemade == null) {
-            this.idetatdemade = new Etatdemande();
+        Etatdemande nouvelEtat = new Etatdemande();
+        
+        if (state instanceof EtatEnAttente) {
+            nouvelEtat.setIdetatdemande(1);
+            this.status = "EN_ATTENTE";
+        } else if (state instanceof EtatEnCours) {
+            nouvelEtat.setIdetatdemande(2);
+            this.status = "EN_COURS";
+        } else if (state instanceof EtatValidee) {
+            nouvelEtat.setIdetatdemande(3);
+            this.status = "VALIDEE";
+        } else if (state instanceof EtatRejetee) {
+            nouvelEtat.setIdetatdemande(4);
+            this.status = "REJETEE";
         }
         
-        if (state instanceof EtatEnAttente) this.idetatdemade.setIdetatdemande(1);
-        else if (state instanceof EtatEnCours) this.idetatdemade.setIdetatdemande(2);
-        else if (state instanceof EtatValidee) this.idetatdemade.setIdetatdemande(3);
-        else if (state instanceof EtatRejetee) this.idetatdemade.setIdetatdemande(4);
+        this.idetatdemade = nouvelEtat;
     }
 
     // Méthodes de transition déléguées
