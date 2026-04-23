@@ -1,4 +1,5 @@
 package projetPFE.example.monProjet.service;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -86,12 +87,15 @@ public class Demande implements DemandeInter {
         return DemandeDtoMapper.toDto(demandeSauvegardee);
     }
     @Override
-    public projetPFE.example.monProjet.model.Demande modifierDemande(projetPFE.example.monProjet.model.Demande demande) {
-        if (demandeRepository.existsById(demande.getIdDemande())) {
-            return demandeRepository.save(demande);
-        } else {
-            return null;
+    public DemandeDto modifierDemande(int id, DemandeDto demandeDto) {
+        // GRASP Contrôleur : c'est le SERVICE qui vérifie l'existence et injecte l'id
+        if (!demandeRepository.existsById(id)) {
+            throw new EntityNotFoundException(
+                    "Demande introuvable avec l'id : " + id);
         }
+        projetPFE.example.monProjet.model.Demande entity = DemandeDtoMapper.toEntity(demandeDto);
+        entity.setDemande(id); // injection de l'id faite ici, pas dans le controller
+        return DemandeDtoMapper.toDto(demandeRepository.save(entity));
     }
 
     @Override
