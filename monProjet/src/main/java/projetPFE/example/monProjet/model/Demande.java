@@ -113,6 +113,23 @@ public class Demande {
         }
         
         this.idetatdemade = nouvelEtat;
+
+        // GRASP – Expert : L'entité vérifie ses propres invariants OCL
+        validerInvariantsOCL();
+    }
+
+    /**
+     * Vérifie les contraintes logiques de l'objet (OCL Invariants).
+     */
+    public void validerInvariantsOCL() {
+        // Invariant : Une demande ne peut être VALIDÉE que si le loyer est calculé (> 0)
+        if ("VALIDEE".equals(this.status)) {
+            if (this.loyer <= 0) {
+                throw new IllegalStateException(
+                    "OCL Violation : Une demande ne peut pas avoir le statut 'VALIDÉE' si son champ 'loyer mensuel' est égal à zéro."
+                );
+            }
+        }
     }
 
     // Méthodes de transition déléguées
