@@ -1,20 +1,21 @@
 package projetPFE.example.monProjet.interfac;
-import projetPFE.example.monProjet.DTO.DemandeDto;
-import projetPFE.example.monProjet.model.Demande;
 
-import java.util.List;
-public interface DemandeInter {
-    Demande getById(int id);
-    List<Demande> getAll();
-    DemandeDto ajouterDemande(DemandeDto demande, String authorizationHeader);
-
-    // GRASP Contrôleur : le service reçoit id + DTO (le controller ne touche plus à l'objet)
-    DemandeDto modifierDemande(int id, DemandeDto demande);
-
-    void supprimerDemande(int id);
-    int getCountByEtatDemande(int etatDemandeId);
-
-    DemandeDto modifierEtatDemande(Integer id, DemandeDto newDemandeDto);
-
-    List<DemandeDto> getDemandesByIdUtilisateur(String authorizationHeader);
+/**
+ * SOLID – ISP (Interface Segregation Principle) :
+ * Interface de composition qui hérite des 3 sous-interfaces spécialisées.
+ *
+ * Avantages :
+ *  - Le service Demande.java implémente toujours UNE seule interface (zéro breaking change)
+ *  - Chaque client (controller, composant) injecte uniquement la sous-interface dont il a besoin
+ *  - Un CLIENT ne voit jamais les méthodes ADMIN, et vice-versa
+ *
+ *  IDemandeClientService       → ajouterDemande, getDemandesByIdUtilisateur
+ *  IDemandeAdminService        → modifierDemande, supprimerDemande, count, modifierEtat
+ *  IDemandeConsultationService → getById, getAll
+ */
+public interface DemandeInter
+        extends IDemandeClientService,
+                IDemandeAdminService,
+                IDemandeConsultationService {
+    // Aucune méthode supplémentaire — composition pure des 3 sous-interfaces
 }
