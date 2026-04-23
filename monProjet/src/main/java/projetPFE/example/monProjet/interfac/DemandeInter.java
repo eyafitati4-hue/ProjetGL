@@ -8,12 +8,13 @@ public interface DemandeInter {
     List<Demande> getAll();
     DemandeDto ajouterDemande(DemandeDto demande, String authorizationHeader);
 
-    Demande modifierDemande(Demande demande);
+    // GRASP Contrôleur : le service reçoit id + DTO (le controller ne touche plus à l'objet)
+    DemandeDto modifierDemande(int id, DemandeDto demande);
+
     void supprimerDemande(int id);
     int getCountByEtatDemande(int etatDemandeId);
 
-     DemandeDto modifierEtatDemande(Integer id, DemandeDto newDemandeDto);
-
+    DemandeDto modifierEtatDemande(Integer id, DemandeDto newDemandeDto);
 
     List<DemandeDto> getDemandesByIdUtilisateur(String authorizationHeader);
 }
