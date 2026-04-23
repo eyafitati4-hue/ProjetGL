@@ -44,34 +44,11 @@ public class AuthenticationService implements IIdentityService, ISessionService 
             throw new UserAlreadyExistsException("Un utilisateur avec cet email existe déjà.");
         }
 
-        // Déterminer le rôle
-        RoleType roleType = RoleType.CLIENT;
-        Integer requestedRoleId = null;
-
-        if (request.getIdRole() != null && request.getIdRole().getIdRole() != null) {
-            requestedRoleId = request.getIdRole().getIdRole();
-            Role role = roleRepository.findById(requestedRoleId).orElse(null);
-            if (role != null) {
-                if ("ADMIN".equalsIgnoreCase(role.getLabelrole())) {
-                    roleType = RoleType.ADMIN;
-                } else if ("CONCESSIONNAIRE".equalsIgnoreCase(role.getLabelrole())) {
-                    roleType = RoleType.CONCESSIONNAIRE;
-                }
-            }
-        }
-
-        // Créer l'utilisateur avec le rôle déterminé dans le body
+        // Utilisation de la Factory centralisée (GoF)
         var user = userFactory.createUser(
                 request,
-                passwordEncoder.encode(request.getMotdepasse()),
-                roleType);
-
-        if (requestedRoleId != null && requestedRoleId != 3) { // 3 = ID de CLIENT (à ajuster)
-            Role correctRole = roleRepository.findById(requestedRoleId)
-                    .orElseThrow(() -> new RuntimeException("Rôle non trouvé"));
-            user.setIdRole(correctRole);
-            System.out.println("Rôle modifié de CLIENT vers: " + correctRole.getLabelrole());
-        }
+                passwordEncoder.encode(request.getMotdepasse())
+        );
 
         var savedUser = repository.save(user);
         var jwtToken = jwtService.generateToken(user);
@@ -82,19 +59,6 @@ public class AuthenticationService implements IIdentityService, ISessionService 
                 .role(user.getIdRole().getRedirectName())
                 .build();
     }
-
-    // var user = userFactory.createUser(
-    // request,
-    // passwordEncoder.encode(request.getMotdepasse()),
-    // RoleType.CLIENT);
-    // var savedUser = repository.save(user);
-    // var jwtToken = jwtService.generateToken(user);
-    // saveUserToken(savedUser, jwtToken);
-    // return AuthenticationResponse.builder()
-    // .token(jwtToken)
-    // .role(user.getIdRole().getRedirectName())
-    // .build();
-    // }
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
