@@ -1,6 +1,8 @@
 package projetPFE.example.monProjet.DTOmapper;
 import org.springframework.stereotype.Component;
 import projetPFE.example.monProjet.DTO.UtilisateurDto;
+import projetPFE.example.monProjet.builder.IProduitBuilder;
+import projetPFE.example.monProjet.builder.ProduitDirector;
 import projetPFE.example.monProjet.model.Association10;
 import projetPFE.example.monProjet.model.Etatproduit;
 import projetPFE.example.monProjet.model.Produit;
@@ -44,26 +46,11 @@ public class ProduitDtoMapper {
         if (produitDto == null) {
             return null;
         }
-        return Produit.builder()
-                .idProduit(produitDto.getIdProduit())
-                .idmarque(MarqueDtoMapper.toEntity(produitDto.getIdmarque()))
-                .etatproduit(EtatProduitDtoMapper.toEntity(produitDto.getEtatproduit()))
-                .utilisateur(UtilisateurDtoMapper.toEntity(produitDto.getIdutilisateur()))
-                .modele(produitDto.getModele())
-                .kilometrage(produitDto.getKilometrage())
-                .prixproduit(produitDto.getPrixproduit())
-                .description(produitDto.getDescription())
-                .image(produitDto.getImage())
-                .quantite(produitDto.getQuantite())
-                .nomproduit(produitDto.getNomproduit())
-                .apportpropre(produitDto.getApportpropre())
-                .loyer(produitDto.getLoyer())
-                .nbplaces(produitDto.getNbplaces())
-                .carrosserie(produitDto.getCarrosserie())
-                .nbportes(produitDto.getNbportes())
-                .disponibilite(produitDto.getDisponibilite())
-                .garantie(produitDto.getGarantie())
-                .build();
+        // --- Utilisation du Pattern Builder conforme au diagramme GoF ---
+        IProduitBuilder builder = Produit.builder();
+        ProduitDirector director = new ProduitDirector(builder);
+        
+        return director.construct(produitDto);
     }
 
 
