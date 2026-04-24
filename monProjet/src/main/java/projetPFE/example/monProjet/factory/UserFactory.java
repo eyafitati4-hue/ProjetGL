@@ -3,47 +3,39 @@ package projetPFE.example.monProjet.factory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import projetPFE.example.monProjet.auth.RegisterRequest;
-import projetPFE.example.monProjet.model.Etatutilisateur;
-import projetPFE.example.monProjet.model.Role;
-import projetPFE.example.monProjet.model.RoleType;
 import projetPFE.example.monProjet.model.Utilisateur;
-import projetPFE.example.monProjet.repository.EtatutilisateurRepository;
 import projetPFE.example.monProjet.repository.RoleRepository;
 
 @Component
 @RequiredArgsConstructor
 public class UserFactory {
 
+    private final AdminUserFactory adminFactory;
+    private final ClientUserFactory clientFactory;
+    private final ConcessionnaireUserFactory concessionnaireFactory;
     private final RoleRepository roleRepository;
-    private final EtatutilisateurRepository etatRepository;
 
     public Utilisateur createUser(RegisterRequest request, String encodedPassword) {
-        // Logique centralisée de détermination du rôle
-        Role role;
-        if (request.getIdRole() != null && request.getIdRole().getIdRole() != null) {
-            role = roleRepository.findById(request.getIdRole().getIdRole())
-                    .orElseThrow(() -> new RuntimeException("Rôle spécifié non trouvé"));
-        } else {
-            // Par défaut, c'est un CLIENT
-            role = roleRepository.findByLabelrole(RoleType.CLIENT.name())
-                    .orElseThrow(() -> new RuntimeException("Rôle CLIENT non trouvé"));
+        String roleLabel = null;
+
+        if (request.getIdRole() != null) {
+            if (request.getIdRole().getLabelrole() != null) {
+                roleLabel = request.getIdRole().getLabelrole();
+            } else if (request.getIdRole().getIdRole() != null) {
+                roleLabel = roleRepository.findById(request.getIdRole().getIdRole())
+                        .map(r -> r.getLabelrole())
+                        .orElse(null);
+            }
         }
 
-        Etatutilisateur etat = etatRepository.findByLabelleetatutilisateur("ACTIF")
-                .orElseThrow(() -> new RuntimeException("Etat ACTIF not found"));
-
-        return Utilisateur.builder()
-                .prenom(request.getPrenom())
-                .nomutilisateur(request.getNom())
-                .email(request.getEmail())
-                .telephone(request.getTelephone())
-                .adresse(request.getAdresse())
-                .ville(request.getVille())
-                .codepostal(request.getCodepostal())
-                .datenaissance(request.getDatenaissance())
-                .motdepasse(encodedPassword)
-                .idRole(role)
-                .idEtat(etat)
-                .build();
+        // Sélection de la factory concrète selon le rôle
+        if ("ADMIN".equalsIgnoreCase(roleLabel)) {
+            return adminFactory.createUser(request, encodedPassword);
+        } else if ("CONCESSIONNAIRE".equalsIgnoreCase(roleLabel)) {
+            return concessionnaireFactory.createUser(request, encodedPassword);
+        }
+        
+        // Par défaut, utilise la factory client
+        return clientFactory.createUser(request, encodedPassword);
     }
 }
