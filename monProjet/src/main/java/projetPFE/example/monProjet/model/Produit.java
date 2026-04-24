@@ -7,6 +7,11 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import projetPFE.example.monProjet.DTO.ProduitDto;
+import projetPFE.example.monProjet.DTOmapper.EtatProduitDtoMapper;
+import projetPFE.example.monProjet.DTOmapper.MarqueDtoMapper;
+import projetPFE.example.monProjet.DTOmapper.UtilisateurDtoMapper;
+import projetPFE.example.monProjet.builder.IProduitBuilder;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -161,7 +166,7 @@ public class Produit {
         return new ProduitBuilder();
     }
 
-    public static class ProduitBuilder {
+    public static class ProduitBuilder implements IProduitBuilder {
         private Integer idProduit;
         private Marque idmarque;
         private Utilisateur utilisateur;
@@ -273,6 +278,46 @@ public class Produit {
 
         public Produit build() {
             return new Produit(this);
+        }
+
+        // --- Implémentation de IProduitBuilder (GoF) ---
+
+        @Override
+        public IProduitBuilder buildIdentite(ProduitDto dto) {
+            this.idProduit = dto.getIdProduit();
+            this.nomproduit = dto.getNomproduit();
+            this.modele = dto.getModele();
+            this.idmarque = MarqueDtoMapper.toEntity(dto.getIdmarque());
+            this.utilisateur = UtilisateurDtoMapper.toEntity(dto.getIdutilisateur());
+            return this;
+        }
+
+        @Override
+        public IProduitBuilder buildCaracteristiques(ProduitDto dto) {
+            this.description = dto.getDescription();
+            this.image = dto.getImage();
+            this.kilometrage = dto.getKilometrage();
+            this.etatproduit = EtatProduitDtoMapper.toEntity(dto.getEtatproduit());
+            this.carrosserie = dto.getCarrosserie();
+            this.nbplaces = dto.getNbplaces();
+            this.nbportes = dto.getNbportes();
+            this.garantie = dto.getGarantie();
+            return this;
+        }
+
+        @Override
+        public IProduitBuilder buildFinancesEtStock(ProduitDto dto) {
+            this.prixproduit = dto.getPrixproduit();
+            this.quantite = dto.getQuantite();
+            this.disponibilite = dto.getDisponibilite();
+            this.apportpropre = dto.getApportpropre();
+            this.loyer = dto.getLoyer();
+            return this;
+        }
+
+        @Override
+        public Produit getResult() {
+            return this.build();
         }
     }
 }
