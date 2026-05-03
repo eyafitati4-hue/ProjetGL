@@ -60,6 +60,8 @@ public class ProduitServiceImpl implements ProduitService {
 
 
 
+    @Override
+    public ProduitDto ajouterProduit(ProduitDto produitDto) {
         // --- OCL Pre-conditions (voir contraintes-catalogue-produit.ocl) ---
         if (produitDto.getPrixproduit() == null || produitDto.getPrixproduit() <= 0) {
             throw new IllegalArgumentException("OCL Violation: prixDeBaseRequis (le prix doit être > 0)");
@@ -142,9 +144,6 @@ public class ProduitServiceImpl implements ProduitService {
                 produitRepository.save(oldProduit);
 
                 return ProduitDtoMapper.toDto(oldProduit);
-            } else {
-                return null;
-            }
         } else {
             return null;
         }
