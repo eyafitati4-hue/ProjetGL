@@ -5,6 +5,12 @@ import org.springframework.stereotype.Service;
 import projetPFE.example.monProjet.interfac.SimulerInter;
 import projetPFE.example.monProjet.repository.ProduitRepository;
 
+/**
+ * Service de calcul financier (Simulations).
+ *
+ * Sécurisé par des pré-conditions OCL pour garantir la justesse des calculs.
+ * Spécification formelle : src/main/resources/ocl/contraintes-catalogue-produit.ocl
+ */
 @Service
 public class SimulerService  implements SimulerInter {
 
@@ -17,11 +23,25 @@ public class SimulerService  implements SimulerInter {
 
 
     public double calculerApportPropre(Integer prixproduit){
-    return calculStrategy.calculerApport(prixproduit.doubleValue());
+        // Pre-condition OCL : prixStrictementPositifPourSimul
+        if (prixproduit == null || prixproduit <= 0) {
+            throw new IllegalArgumentException("OCL Violation: prixStrictementPositifPourSimul (le prix doit être > 0)");
+        }
+        return calculStrategy.calculerApport(prixproduit.doubleValue());
     }
 
 
     public double calculerLoyerMensuel(Produit produit, int nombreAnnees, double nouvelApportPropre){
+        // Pre-conditions OCL : produitValide, dureeValide, apportNonNegatif
+        if (produit == null || produit.getPrixproduit() == null || produit.getPrixproduit() <= 0) {
+            throw new IllegalArgumentException("OCL Violation: produitValide (le produit doit avoir un prix > 0)");
+        }
+        if (nombreAnnees <= 0) {
+            throw new IllegalArgumentException("OCL Violation: dureeValide (la durée doit être > 0)");
+        }
+        if (nouvelApportPropre < 0) {
+            throw new IllegalArgumentException("OCL Violation: apportNonNegatif (l'apport ne peut pas être négatif)");
+        }
         return calculStrategy.calculerLoyer(produit, nombreAnnees, nouvelApportPropre);
     }
 

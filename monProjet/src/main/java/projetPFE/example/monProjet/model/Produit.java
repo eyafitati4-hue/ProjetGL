@@ -12,7 +12,6 @@ import projetPFE.example.monProjet.DTOmapper.EtatProduitDtoMapper;
 import projetPFE.example.monProjet.DTOmapper.MarqueDtoMapper;
 import projetPFE.example.monProjet.DTOmapper.UtilisateurDtoMapper;
 import projetPFE.example.monProjet.builder.IProduitBuilder;
-
 import java.util.HashSet;
 import java.util.Set;
 @Entity
@@ -122,7 +121,8 @@ public class Produit {
     }
 
     /**
-     * @GRASP Expert / OCL Invariant
+     * @GRASP Expert / OCL Invariants
+     * Exécution des contraintes formelles : src/main/resources/ocl/contraintes-catalogue-produit.ocl
      * Protection du système contre les erreurs de saisie pour les calculs financiers.
      */
     public void validerInvariantsOCL() {

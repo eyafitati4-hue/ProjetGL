@@ -17,8 +17,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * Service d'implémentation pour la gestion des produits.
+ *
+ * Applique le Design by Contract via des pré-conditions OCL.
+ * Spécification formelle : src/main/resources/ocl/contraintes-catalogue-produit.ocl
+ */
 @Service
-
 public class ProduitServiceImpl implements ProduitService {
     @Autowired
     private ProduitRepository produitRepository;
@@ -55,24 +60,22 @@ public class ProduitServiceImpl implements ProduitService {
 
 
 
-    @Override
-    public ProduitDto ajouterProduit(ProduitDto produitDto) {
-        // --- Vérification Manuelle des Invariants OCL (Maîtrise) ---
+        // --- OCL Pre-conditions (voir contraintes-catalogue-produit.ocl) ---
         if (produitDto.getPrixproduit() == null || produitDto.getPrixproduit() <= 0) {
-            throw new IllegalArgumentException("Erreur de saisie: prixproduit doit être > 0 (OCL)");
+            throw new IllegalArgumentException("OCL Violation: prixDeBaseRequis (le prix doit être > 0)");
         }
         if (produitDto.getKilometrage() == null || produitDto.getKilometrage() < 0) {
-            throw new IllegalArgumentException("Erreur de saisie: kilometrage doit être >= 0 (OCL)");
+            throw new IllegalArgumentException("OCL Violation: kilometrageValide (le kilométrage doit être >= 0)");
         }
 
-        // --- Vérification spécifique État / Kilométrage ---
+        // --- Invariants Contextuels OCL ---
         if (produitDto.getEtatproduit() != null && produitDto.getEtatproduit().getIdetatproduit() != null) {
             int idEtat = produitDto.getEtatproduit().getIdetatproduit();
             if (idEtat == 1 && produitDto.getKilometrage() > 0) {
-                throw new IllegalArgumentException("Erreur OCL: Un véhicule NEUF ne peut pas avoir de kilomètres.");
+                throw new IllegalArgumentException("OCL Violation: coherenceVehiculeNeuf (un véhicule NEUF doit avoir 0 km)");
             }
             if (idEtat > 1 && produitDto.getKilometrage() == 0) {
-                throw new IllegalArgumentException("Erreur OCL: Un véhicule d'OCCASION doit avoir un kilométrage > 0.");
+                throw new IllegalArgumentException("OCL Violation: coherenceVehiculeOccasion (un véhicule d'OCCASION doit avoir > 0 km)");
             }
         }
 
@@ -126,10 +129,14 @@ public class ProduitServiceImpl implements ProduitService {
         Optional<projetPFE.example.monProjet.model.Produit> oldProduitOptional = produitRepository.findById(id);
         if (oldProduitOptional.isPresent()) {
             projetPFE.example.monProjet.model.Produit oldProduit = oldProduitOptional.get();
-            if (newProduitDto.getEtatproduit() != null) {
+                // --- OCL Pre-condition : etatNonNul ---
+                if (newProduitDto.getEtatproduit() == null) {
+                    throw new IllegalArgumentException("OCL Violation: etatNonNul (l'état du produit ne peut pas être nul)");
+                }
+                
                 oldProduit.setEtatproduit(EtatProduitDtoMapper.toEntity(newProduitDto.getEtatproduit()));
 
-                // --- Validation Manuelle OCL après changement d'état ---
+                // --- Validation des Invariants OCL du modèle (inv: coherenceVehicule...) ---
                 oldProduit.validerInvariantsOCL();
 
                 produitRepository.save(oldProduit);
