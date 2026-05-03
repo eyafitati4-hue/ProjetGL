@@ -35,3 +35,6 @@ build/
 
 ### Devis — fichiers générés localement (PDF simulés) ###
 devis-pdf/
+
+### Postman — collections / environnement de test locaux ###
+postman/
