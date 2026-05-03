@@ -1,0 +1,117 @@
+-- ============================================================================
+-- OCL formel — périmètre : devis + document PDF (DeviService, PdfGenerateur*)
+--
+-- Objectif pédagogique : contraintes non triviales (let, def, @pre, if-then-else,
+-- quantificateurs sur collections, chaînages implies / and / or).
+-- L'exécution reste en Java ; ce fichier est la spécification formelle associée.
+-- ============================================================================
+
+-- ----------------------------------------------------------------------------
+-- Type Devi — invariants structurels + définitions dérivées réutilisables
+-- ----------------------------------------------------------------------------
+
+context Devi
+
+-- Expression nommée réutilisable : « pas de diminution du montant vs prix de base »
+-- lorsque les deux montants sont connus (cohérent avec le Decorator qui n'ajoute
+-- que des majorations non négatives).
+def: montantFinalDominePrixBaseOuInconnu(): Boolean =
+    if montantFinal.oclIsUndefined() or prixbase.oclIsUndefined() then
+        true
+    else
+        montantFinal >= prixbase
+    endif
+
+def: pretPourEditionDocument(): Boolean =
+    let mfOk : Boolean =
+            not montantFinal.oclIsUndefined() and montantFinal > 0,
+        pbOk : Boolean =
+            not prixbase.oclIsUndefined() and prixbase > 0
+    in
+        mfOk and pbOk
+
+inv montantNeRegressePasParRapportAuPrixBase:
+    montantFinalDominePrixBaseOuInconnu()
+
+-- Aucun doublon d’identifiant de demande sur l’ensemble des lignes liées (intégrité logique).
+inv cleDemandeUniqueParmiLesLignesLiees:
+    demandes->isUnique(d | d.idDemande)
+
+-- Intégrité association bidirectionnelle Demande ↔ Devis (JPA mappedBy)
+inv integriteReferencesDemandesLiees:
+    demandes->forAll(d : Demande |
+        not d.oclIsUndefined() implies d.devis = self)
+
+
+-- ----------------------------------------------------------------------------
+-- DeviService — opération métier : options + persistance + déclenchement PDF
+-- ----------------------------------------------------------------------------
+
+context DeviService::ajouterDeviAvecOptions(devis : Devi, avecAssurance : Boolean, avecFrais : Boolean) : Devi
+
+pre prixDeBaseStrictementPositif:
+    not devis.prixbase.oclIsUndefined() and devis.prixbase > 0
+
+pre devisNonNul:
+    not devis.oclIsUndefined()
+
+post montantFinalStrictementPositif:
+    result.montantFinal > 0
+
+-- Conservation du prix de base entre entrée et sortie (pas de mutation involontaire).
+post conservationDuPrixDeBase:
+    result.prixbase = devis.prixbase@pre
+
+-- Le décorateur ne diminue jamais le total par rapport au prix de base initial.
+post enrichissementMinimumParRapportAuPrixBaseInitial:
+    let pb0 : Real = devis.prixbase@pre,
+        mf : Real = result.montantFinal
+    in
+        not pb0.oclIsUndefined() implies mf >= pb0
+
+-- Si les deux montants sont présents sur le résultat, relation d’ordre renforcée.
+post coherenceOrdreMontantsSurResultat:
+    not result.montantFinal.oclIsUndefined()
+        and not result.prixbase.oclIsUndefined()
+    implies result.montantFinal >= result.prixbase
+
+
+-- ----------------------------------------------------------------------------
+-- PdfGenerateurInter — production du document fichier à partir du devis persisté
+-- ----------------------------------------------------------------------------
+
+context PdfGenerateurInter::genererPdf(devi : Devi) : String
+
+pre entreeDocumentValidable:
+    not devi.oclIsUndefined()
+
+pre montantEtBaseCompatiblesAvecInvariantDevi:
+    not devi.montantFinal.oclIsUndefined()
+        and devi.montantFinal > 0
+        and devi.montantFinalDominePrixBaseOuInconnu()
+
+pre pretPourExportSelonDevi:
+    devi.pretPourEditionDocument()
+
+post cheminNonVide:
+    let longueur : Integer = result.size()
+    in
+        longueur > 0
+
+-- Le générateur ne doit pas altérer les montants métier du devis passé en entrée.
+post stabiliteMontantFinalSurParametre:
+    devi.montantFinal = devi.montantFinal@pre
+
+post stabilitePrixBaseSurParametre:
+    devi.prixbase = devi.prixbase@pre
+
+-- Structure minimale du nom : si on connaît l’identifiant du devis, le chemin retourné
+-- doit être suffisamment long pour contenir une partie « devis » + séparateurs + date (profil projet).
+-- Chaîne retournée alignée sur l’impl. « devis-pdf/devis_<id>_… » (indices substring OMG : bornes inclusives, base 1).
+post traceCheminSiIdentifiantConnu:
+    not devi.idDevis.oclIsUndefined() implies
+        let n : Integer = result.size()
+        in
+            n >= 12 and result.substring(1, 5) = 'devis'
+
+-- Affinement possible : matches('devis-pdf\\/devis_[0-9]+_.*\\.pdf') selon moteur OCL.
