@@ -1,0 +1,70 @@
+-- ============================================================================
+-- OCL formel — périmètre : Catalogue & Entités de Base (Produit, ProduitService, SimulerService)
+-- ============================================================================
+
+-- ----------------------------------------------------------------------------
+-- Produit — invariants structurels et contextuels
+-- ----------------------------------------------------------------------------
+context Produit
+
+-- Le prix d'un produit doit être strictement positif
+inv prixStrictementPositif:
+    not self.prixproduit.oclIsUndefined() implies self.prixproduit > 0
+
+-- Le kilométrage ne peut pas être négatif
+inv kilometragePositifOuNul:
+    not self.kilometrage.oclIsUndefined() implies self.kilometrage >= 0
+
+-- Cohérence État vs Kilométrage pour un véhicule NEUF
+inv coherenceVehiculeNeuf:
+    (not self.etatproduit.oclIsUndefined() and self.etatproduit.idetatproduit = 1) implies
+        (not self.kilometrage.oclIsUndefined() and self.kilometrage = 0)
+
+-- Cohérence État vs Kilométrage pour un véhicule d'OCCASION ou VENDU
+inv coherenceVehiculeOccasion:
+    (not self.etatproduit.oclIsUndefined() and self.etatproduit.idetatproduit > 1) implies
+        (not self.kilometrage.oclIsUndefined() and self.kilometrage > 0)
+
+-- ----------------------------------------------------------------------------
+-- ProduitService — opérations métier
+-- ----------------------------------------------------------------------------
+context ProduitService::ajouterProduit(produitDto : ProduitDto) : ProduitDto
+
+pre prixDeBaseRequis:
+    not produitDto.prixproduit.oclIsUndefined() and produitDto.prixproduit > 0
+
+pre kilometrageValide:
+    not produitDto.kilometrage.oclIsUndefined() and produitDto.kilometrage >= 0
+
+context ProduitService::modifierEtatProduit(id : Integer, newProduitDto : ProduitDto) : ProduitDto
+
+pre etatNonNul:
+    not newProduitDto.etatproduit.oclIsUndefined()
+
+post etatModifieAvecSucces:
+    result.etatproduit.idetatproduit = newProduitDto.etatproduit.idetatproduit
+
+-- ----------------------------------------------------------------------------
+-- SimulerService — opérations de calcul financier
+-- ----------------------------------------------------------------------------
+context SimulerService::calculerApportPropre(prixproduit : Integer) : Real
+
+pre prixStrictementPositifPourSimul:
+    not prixproduit.oclIsUndefined() and prixproduit > 0
+
+post apportCalculePositifOuNul:
+    result >= 0
+
+context SimulerService::calculerLoyerMensuel(produit : Produit, nombreAnnees : Integer, nouvelApportPropre : Real) : Real
+
+pre produitValide:
+    not produit.oclIsUndefined() and not produit.prixproduit.oclIsUndefined() and produit.prixproduit > 0
+
+pre dureeValide:
+    not nombreAnnees.oclIsUndefined() and nombreAnnees > 0
+
+pre apportNonNegatif:
+    not nouvelApportPropre.oclIsUndefined() and nouvelApportPropre >= 0
+
+post loyerMensuelPositif:
+    result > 0
