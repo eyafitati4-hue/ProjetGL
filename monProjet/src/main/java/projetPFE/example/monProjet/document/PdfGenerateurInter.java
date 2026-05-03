@@ -10,6 +10,9 @@ import projetPFE.example.monProjet.model.Devi;
  *   de l'entité Document qui ne stocke que les métadonnées.
  *   Si l'outil PDF change (iText → Apache PDFBox), seule l'implémentation change,
  *   jamais la base de données ni l'entité Document.
+ *
+ * OCL formel : {@code context PdfGenerateurInter::genererPdf} dans
+ * {@code src/main/resources/ocl/contraintes-devis-document.ocl}.
  */
 public interface PdfGenerateurInter {
 

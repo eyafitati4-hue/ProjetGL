@@ -22,7 +22,8 @@ import java.util.List;
  * SOLID – SRP : ce service ne génère pas lui-même le PDF ;
  * il délègue cette responsabilité à PdfGenerateurInter.
  *
- * OCL – Postcondition vérifiée dans ajouterDeviAvecOptions()
+ * OCL formel (devis / document) : {@code src/main/resources/ocl/contraintes-devis-document.ocl}
+ * — {@code context DeviService::ajouterDeviAvecOptions} ; exécution : {@link #ajouterDeviAvecOptions}.
  */
 @Service
 public class DeviService implements DeviInter {
@@ -76,11 +77,18 @@ public class DeviService implements DeviInter {
         }
 
         double montantFinal = composant.getMontantTotal();
+        double prixBase = devis.getPrixbase();
 
-        // OCL – Postcondition
+        // OCL – Postconditions (voir contraintes-devis-document.ocl : montantFinal > 0, mf >= prixbase@pre)
         if (montantFinal <= 0) {
             throw new IllegalStateException(
                     "Postcondition violée : le montant final calculé (" + montantFinal + ") doit être > 0."
+            );
+        }
+        if (montantFinal < prixBase) {
+            throw new IllegalStateException(
+                    "Postcondition OCL violée : le montant final (" + montantFinal
+                            + ") doit être au moins égal au prix de base (" + prixBase + ")."
             );
         }
 

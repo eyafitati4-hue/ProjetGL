@@ -15,9 +15,8 @@ import java.time.LocalDateTime;
  *   Cette classe a UNE SEULE responsabilité : produire le fichier PDF.
  *   Elle ne connaît pas la base de données, les DTOs ni les contrôleurs.
  *
- * OCL – Postcondition :
- *   Après genererPdf(), le fichier doit exister et le montant imprimé
- *   doit correspondre exactement à devi.getMontantFinal().
+ * OCL formel : {@code src/main/resources/ocl/contraintes-devis-document.ocl}
+ * ({@code PdfGenerateurInter::genererPdf}) ; contrôle fichier : {@link #verifierPostcondition}.
  *
  * NOTE : L'implémentation ci-dessous génère un fichier texte simulant un PDF.
  *        En production, remplacez par iText ou Apache PDFBox.
