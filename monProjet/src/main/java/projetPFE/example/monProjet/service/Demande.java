@@ -55,6 +55,7 @@ public class Demande implements DemandeInter {
 
 
     @Override
+    // /* OCL Invariant check: Implicitly checked by repository.save() triggers validation in model */
     public DemandeDto ajouterDemande (DemandeDto demande, String authorizationHeader) {
         String jwt = authorizationHeader.substring(7);
         String EmailUtilisateur = jwtService.extractNomUtilisateur(jwt);
@@ -71,7 +72,12 @@ public class Demande implements DemandeInter {
             demande.setEtatdemade(etatDemandeParDefaut);
             System.out.println(demande);
 
-        projetPFE.example.monProjet.model.Demande demandeSauvegardee = demandeRepository.save(DemandeDtoMapper.toEntity(demande));
+        projetPFE.example.monProjet.model.Demande entity = DemandeDtoMapper.toEntity(demande);
+        
+        // GRASP Expert : Déclenchement manuel de la validation OCL
+        entity.validerInvariantsOCL();
+
+        projetPFE.example.monProjet.model.Demande demandeSauvegardee = demandeRepository.save(entity);
 
 
         for (int i = 1; i <= 3; i++) {
@@ -95,6 +101,10 @@ public class Demande implements DemandeInter {
         }
         projetPFE.example.monProjet.model.Demande entity = DemandeDtoMapper.toEntity(demandeDto);
         entity.setDemande(id); // injection de l'id faite ici, pas dans le controller
+        
+        // GRASP Expert : Déclenchement manuel de la validation OCL
+        entity.validerInvariantsOCL();
+        
         return DemandeDtoMapper.toDto(demandeRepository.save(entity));
     }
 
@@ -109,6 +119,7 @@ public class Demande implements DemandeInter {
     }
 
     @Override
+    // /* OCL Invariant check: modifierEtatDemande calls model.valider() which calls validerInvariantsOCL() */
     public DemandeDto modifierEtatDemande(Integer id, DemandeDto newDemandeDto) {
         Optional<projetPFE.example.monProjet.model.Demande> oldDemandeOptional = demandeRepository.findById(id);
 

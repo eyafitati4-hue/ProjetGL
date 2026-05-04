@@ -1,0 +1,40 @@
+package projetPFE.example.monProjet.model
+
+-- ============================================================================
+-- Fichier Formel OCL : Silo Demande & Cycle de Vie
+-- ============================================================================
+
+-- 1. Invariant : Le prix du produit doit être strictement positif
+context Demande
+inv PrixProduitStrictementPositif:
+    not self.prixproduit.oclIsUndefined() implies self.prixproduit > 0
+
+-- 2. Invariant : Le loyer mensuel ne peut pas être négatif
+context Demande
+inv LoyerPositifOuNul:
+    self.loyer >= 0
+
+-- 3. Invariant (Règle Métrique) : Une demande VALIDÉE doit avoir un loyer calculé
+-- Correspond à : status = 'VALIDEE' implies loyer > 0
+context Demande
+inv ValideeImpliqueLoyerCalculer:
+    (not self.status.oclIsUndefined() and self.status = 'VALIDEE') implies self.loyer > 0
+
+-- 4. Invariant : L'apport propre ne peut pas être négatif
+context Demande
+inv ApportProprePositifOuNul:
+    self.apportpropre >= 0
+
+-- 5. Précondition : Création de devis (prix et utilisateur requis)
+context Demande::creerDevis(avecAssurance: Boolean, avecFraisDossier: Boolean) : Devi
+pre prixProduitRequis:
+    not self.prixproduit.oclIsUndefined() and self.prixproduit > 0
+pre clientAssocie:
+    not self.idutilisateur.oclIsUndefined()
+
+-- 6. Postcondition : Le montant du devis généré doit être positif
+context Demande::creerDevis(avecAssurance: Boolean, avecFraisDossier: Boolean) : Devi
+post montantDevisPositif:
+    result.montantFinal > 0
+
+endpackage
