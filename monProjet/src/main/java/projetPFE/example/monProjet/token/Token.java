@@ -1,86 +1,77 @@
 package projetPFE.example.monProjet.token;
-
-import java.time.LocalDateTime;
-
+ 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import projetPFE.example.monProjet.model.Utilisateur;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+ 
+@Data @NoArgsConstructor @AllArgsConstructor @Builder
 @Entity
 public class Token {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+ 
+    @Id @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
-    private String token;
-
+    private String      token;
+ 
     @Enumerated(EnumType.STRING)
-    private TokenType tokenType;
-
-    private boolean expired;
-    private boolean revoked;
-
+    private TokenType   tokenType;
+ 
+    private boolean     expired;   // flag état
+    private boolean     revoked;   // flag révocation
+ 
     @ManyToOne
     @JoinColumn(name = "idutilisateur")
     private Utilisateur utilisateur;
-
+ 
+    // ── AJOUTÉ pour OCL INV-1 ───────────────────────────────────────
     @Column(name = "expiration_date")
     private LocalDateTime expirationDate;
-
+    // ────────────────────────────────────────────────────────────────
+ 
     /**
-     * SOLID — SRP : Token est responsable de sa propre validité.
-     * Cette méthode exprime la règle métier du token.
-     * Avant : la logique était dispersée dans JwtAuthenticationFilter.
-     *
-     * @return true si le token représente une session active
+     * SOLID SRP — responsabilité unique : validité de la session.
+     * context Token def: estTechniquementActif() = not expired and not revoked
      */
     public boolean isSessionActive() {
-        System.out.println("[Token SRP] isSessionActive() → expired="
-                + expired + " revoked=" + revoked);
+        System.out.println("[Token SRP] isSessionActive() expired=" + expired
+            + " revoked=" + revoked);
         return !expired && !revoked;
     }
-
+ 
     /**
-     * OCL — Invariant : context Token inv tokenExpirationInvariant
-     * self.expirationDate > Date::now() implies not self.expired
+     * OCL — Enforce INV-1 + INV-3 :
+     *   INV-1 : context Token inv INV1_ExpirationCoherente:
+     *             self.dateEstDepassee() implies self.expired = true
+     *   INV-3 : context Token inv INV3_ExpiredImpliesRevoked:
+     *             self.expired = true implies self.revoked = true
      *
-     * Vérifie l'invariant : si date expirée, mettre expired=true.
-     * 
-     * @return true si l'invariant est respecté AVANT correction
-     *         false si l'invariant était violé (correction appliquée)
+     * @return true  si l'invariant était déjà respecté (aucune correction)
+     *         false si une violation a été détectée et corrigée
      */
     public boolean checkAndEnforceInvariant() {
-        if (expirationDate == null)
-            return true; // pas de date = pas d'invariant
-        boolean dateExpired = LocalDateTime.now().isAfter(expirationDate);
-        if (dateExpired && !this.expired) {
-            // INVARIANT VIOLÉ : dateExpiration <= maintenant ET expired=false
-            System.out.println("[OCL Invariant] VIOLATION détectée token id="
-                    + id + " → désactivation automatique");
-            this.expired = true;
-            this.revoked = true;
-            return false; // invariant était violé → corrigé
+        if (expirationDate == null) return true; // pas de date → pas d'invariant
+ 
+        boolean dateDepassee = LocalDateTime.now().isAfter(expirationDate);
+ 
+        // Vérif INV-1 : dateEstDepassee() implies expired = true
+        if (dateDepassee && !this.expired) {
+            System.out.println("[OCL INV-1] VIOLATION token id=" + id
+                + " → date dépassée mais expired=false → correction");
+            this.expired = true;  // INV-1 : correction
+            this.revoked = true;  // INV-3 : expired=true implies revoked=true
+            return false;
         }
-        System.out.println("[OCL Invariant] OK token id=" + id
-                + " dateExpired=" + dateExpired + " expired=" + expired);
-        return true; // invariant respecté
+ 
+        // Vérif INV-3 : expired = true implies revoked = true
+        if (this.expired && !this.revoked) {
+            System.out.println("[OCL INV-3] VIOLATION token id=" + id
+                + " → expired=true mais revoked=false → correction");
+            this.revoked = true;  // INV-3 : correction
+            return false;
+        }
+ 
+        System.out.println("[OCL INV-1+INV-3] OK token id=" + id
+            + " expired=" + expired + " dateDepassee=" + dateDepassee);
+        return true;
     }
-
-    public LocalDateTime getExpirationDate() {
-        return expirationDate;
-    }
-
-    public void setExpirationDate(LocalDateTime d) {
-        this.expirationDate = d;
-    }
-
 }

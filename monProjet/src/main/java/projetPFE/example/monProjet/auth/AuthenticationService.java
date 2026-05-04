@@ -11,12 +11,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import projetPFE.example.monProjet.config.JwtService;
-import projetPFE.example.monProjet.model.Role;
 import projetPFE.example.monProjet.model.Utilisateur;
 import projetPFE.example.monProjet.repository.RoleRepository;
 import projetPFE.example.monProjet.repository.UtilisateurRepository;
 import projetPFE.example.monProjet.factory.UserFactory;
-import projetPFE.example.monProjet.model.RoleType;
 import projetPFE.example.monProjet.token.Token;
 import projetPFE.example.monProjet.token.TokenRepository;
 import projetPFE.example.monProjet.token.TokenType;
@@ -47,8 +45,7 @@ public class AuthenticationService implements IIdentityService, ISessionService 
         // Utilisation de la Factory centralisée (GoF)
         var user = userFactory.createUser(
                 request,
-                passwordEncoder.encode(request.getMotdepasse())
-        );
+                passwordEncoder.encode(request.getMotdepasse()));
 
         var savedUser = repository.save(user);
         var jwtToken = jwtService.generateToken(user);
@@ -87,29 +84,43 @@ public class AuthenticationService implements IIdentityService, ISessionService 
     private void revokedAllUserTokens(Utilisateur user) {
         var validUserTokens = tokenRepository.findAllValidTokenByUser(user.getIdutilisateur());
         if (validUserTokens.isEmpty())
-            return; // early return
+            return;
+
+        // OCL INV-2 enforcement :
+        // context Token inv INV2_TokenActifAppartientAUtilisateurActif:
+        // self.estTechniquementActif() implies self.utilisateur.idEtat.idEtat = 1
+        // → À la connexion, l'utilisateur reçoit un NOUVEAU token.
+        // Tous ses anciens tokens ACTIFS doivent être révoqués
+        // pour garantir l'unicité de session active.
+        System.out.println("[OCL INV-2] Révocation de " + validUserTokens.size()
+                + " ancien(s) token(s) pour utilisateur id=" + user.getIdutilisateur());
+
         validUserTokens.forEach(t -> {
             t.setExpired(true);
             t.setRevoked(true);
+            // INV-3 automatiquement respecté : expired=true ET revoked=true
         });
         tokenRepository.saveAll(validUserTokens);
 
+        System.out.println("[OCL INV-2] ✓ Postcondition : anciens tokens révoqués");
     }
 
+    // saveUserToken — ajouter log OCL précondition/postcondition
     private void saveUserToken(Utilisateur user, String jwtToken) {
-        // Calculer la date d'expiration (identique à JwtService : 10 minutes)
+        // OCL pre: utilisateurNonNul + jwtTokenNonVide → vérifiés par Spring Security
         LocalDateTime expirationDate = LocalDateTime.now().plusMinutes(10);
 
         var token = Token.builder()
-                .utilisateur(user)
-                .token(jwtToken)
+                .utilisateur(user).token(jwtToken)
                 .tokenType(TokenType.BEARER)
-                .revoked(false)
-                .expired(false)
-                .expirationDate(expirationDate) // NOUVEAU — OCL Invariant
+                .revoked(false).expired(false)
+                .expirationDate(expirationDate) // OCL post: expirationDate > now()
                 .build();
 
-        System.out.println("[OCL] Token créé avec expirationDate=" + expirationDate);
+        // OCL post: tokenInitialementActif — expired=false, revoked=false
+        // OCL post: tokenPersistéAvecDateExpiration — expirationDate dans le futur
+        System.out.println("[OCL post:saveUserToken] Token créé expirationDate="
+                + expirationDate + " expired=false revoked=false ✓");
         tokenRepository.save(token);
     }
 
