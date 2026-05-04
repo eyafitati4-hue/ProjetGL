@@ -1,0 +1,44 @@
+package projetPFE.example.monProjet.service
+
+-- ============================================================================
+-- Fichier Formel OCL : Silo Simulation & Moteur de Calcul
+-- ============================================================================
+
+-- ----------------------------------------------------------------------------
+-- SimulerService — Opérations de haut niveau
+-- ----------------------------------------------------------------------------
+context SimulerService::calculerApportPropre(prixproduit : Integer) : Real
+pre prixStrictementPositifPourSimul:
+    not prixproduit.oclIsUndefined() and prixproduit > 0
+post apportCalculePositifOuNul:
+    result >= 0
+
+context SimulerService::calculerLoyerMensuel(produit : Produit, nombreAnnees : Integer, nouvelApportPropre : Real) : Real
+pre produitValide:
+    not produit.oclIsUndefined() and not produit.prixproduit.oclIsUndefined() and produit.prixproduit > 0
+pre dureeValide:
+    not nombreAnnees.oclIsUndefined() and nombreAnnees > 0
+pre apportNonNegatif:
+    not nouvelApportPropre.oclIsUndefined() and nouvelApportPropre >= 0
+post loyerMensuelPositif:
+    result > 0
+
+-- ----------------------------------------------------------------------------
+-- CalculStandardStrategy — Logique mathématique interne
+-- ----------------------------------------------------------------------------
+context CalculStandardStrategy::calculerApport(prixProduit : Real) : Real
+pre prixValideApport:
+    prixProduit > 0
+
+context CalculStandardStrategy::calculerLoyer(produit : Produit, nombreAnnees : Integer, nouvelApportPropre : Real) : Real
+pre produitNotNull:
+    not produit.oclIsUndefined()
+pre dureePositive:
+    nombreAnnees > 0
+pre apportInferieurAuPrix:
+    -- Empêche un montant emprunté négatif ou nul (Division par zéro évitée)
+    nouvelApportPropre < produit.prixproduit
+post loyerCoherent:
+    result > 0
+
+endpackage
