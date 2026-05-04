@@ -52,10 +52,12 @@ public class Utilisateur implements UserDetails {
     @Email(message = "Le format de l'adresse email est incorrect")
     @Pattern(regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$", message = "Format d'email invalide")
     @Column(name = "email", length = 254, unique = true)
+    /* OCL Invariant: context Utilisateur inv EmailValide: self.email <> null and self.email.matches('^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$') */
     private String email;
 
     @NotBlank
     @Column(name = "telephone", length = 254)
+    /* OCL Invariant: context Utilisateur inv TelephoneValide: self.telephone <> null and self.telephone.size() = 8 and self.telephone.matches('^[0-9]+$') */
     private String telephone;
 
     @NotBlank
@@ -155,5 +157,20 @@ private List<Token> tokens ;
 
 
     //setters et getters
+
+    /**
+     * @GRASP Expert / OCL Invariants
+     * Exécution des contraintes formelles : src/main/resources/ocl/contraintes-administration.ocl
+     */
+    public void validerInvariantsOCL() {
+        if (this.email == null || !this.email.matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$")) {
+            throw new IllegalArgumentException("OCL Violation: Le format de l'email est invalide.");
+        }
+        
+        // Validation du téléphone (8 chiffres)
+        if (this.telephone == null || !this.telephone.matches("^[0-9]{8}$")) {
+            throw new IllegalArgumentException("OCL Violation: Le numéro de téléphone doit contenir exactement 8 chiffres.");
+        }
+    }
 
 }
