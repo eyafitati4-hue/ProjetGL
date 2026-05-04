@@ -42,15 +42,19 @@ public class Demande {
     private String montant;
 
     @Column(name = "status")
+    /* OCL Invariant: context Demande inv ValideeImpliqueLoyerCalculer: (not self.status.oclIsUndefined() and self.status = 'VALIDEE') implies self.loyer > 0 */
     private String status;
 
     @Column(name = "prixproduit")
+    /* OCL Invariant: context Demande inv PrixProduitStrictementPositif: not self.prixproduit.oclIsUndefined() implies self.prixproduit > 0 */
     private Integer prixproduit;
 
     @Column(name = "loyer")
+    /* OCL Invariant: context Demande inv LoyerPositifOuNul: self.loyer >= 0 */
     private double loyer;
 
     @Column(name = "apportpropre")
+    /* OCL Invariant: context Demande inv ApportProprePositifOuNul: self.apportpropre >= 0 */
     private double apportpropre;
 
     @Column(name = "marque")
@@ -120,15 +124,31 @@ public class Demande {
 
     /**
      * Vérifie les contraintes logiques de l'objet (OCL Invariants).
+     * Exécution des contraintes formelles : src/main/resources/ocl/contraintes-demande-cycle-vie.ocl
      */
+    @PrePersist
+    @PreUpdate
     public void validerInvariantsOCL() {
-        // Invariant : Une demande ne peut être VALIDÉE que si le loyer est calculé (> 0)
-        if ("VALIDEE".equals(this.status)) {
-            if (this.loyer <= 0) {
-                throw new IllegalStateException(
-                    "OCL Violation : Une demande ne peut pas avoir le statut 'VALIDÉE' si son champ 'loyer mensuel' est égal à zéro."
-                );
-            }
+        // INV-1 : Prix produit strictement positif
+        if (this.prixproduit != null && this.prixproduit <= 0) {
+            throw new IllegalStateException("OCL Violation (PrixProduitStrictementPositif) : Le prix du produit doit être strictement positif.");
+        }
+
+        // INV-2 : Loyer positif ou nul
+        if (this.loyer < 0) {
+            throw new IllegalStateException("OCL Violation (LoyerPositifOuNul) : Le loyer mensuel ne peut pas être négatif.");
+        }
+
+        // INV-3 : Une demande ne peut être VALIDÉE que si le loyer est calculé (> 0)
+        if ("VALIDEE".equals(this.status) && this.loyer <= 0) {
+            throw new IllegalStateException(
+                "OCL Violation (ValideeImpliqueLoyerCalculer) : Une demande ne peut pas avoir le statut 'VALIDÉE' si son champ 'loyer mensuel' est égal à zéro."
+            );
+        }
+
+        // INV-4 : Apport propre positif ou nul
+        if (this.apportpropre < 0) {
+            throw new IllegalStateException("OCL Violation (ApportProprePositifOuNul) : L'apport propre ne peut pas être négatif.");
         }
     }
 
@@ -154,18 +174,21 @@ public class Demande {
      * @param avecFraisDossier   true si les frais de dossier doivent être ajoutés
      * @return un objet Devi prêt à être persisté
      *
-     * OCL – Postcondition : montantFinal > 0 après création.
+     * OCL Precondition: context Demande::creerDevis pre: not self.prixproduit.oclIsUndefined() and self.prixproduit > 0
+     * OCL Precondition: context Demande::creerDevis pre: not self.idutilisateur.oclIsUndefined()
+     * OCL Postcondition: context Demande::creerDevis post: result.montantFinal > 0
      */
     public Devi creerDevis(boolean avecAssurance, boolean avecFraisDossier) {
-        // Précondition
+        // /* OCL Precondition: prixProduitRequis */
         if (this.prixproduit == null || this.prixproduit <= 0) {
             throw new IllegalStateException(
-                    "Impossible de créer un devis : le prix du produit est invalide (doit être > 0)."
+                    "OCL Violation (Precondition): Impossible de créer un devis : le prix du produit est invalide (doit être > 0)."
             );
         }
+        // /* OCL Precondition: clientAssocie */
         if (this.idutilisateur == null) {
             throw new IllegalStateException(
-                    "Impossible de créer un devis : aucun utilisateur associé à la demande."
+                    "OCL Violation (Precondition): Impossible de créer un devis : aucun utilisateur associé à la demande."
             );
         }
 
@@ -192,10 +215,10 @@ public class Demande {
 
         double montantCalcule = composant.getMontantTotal();
 
-        // OCL – Postcondition : le montant final doit être positif
+        // /* OCL Postcondition: montantDevisPositif */
         if (montantCalcule <= 0) {
             throw new IllegalStateException(
-                    "Postcondition violée : le montant final du devis (" + montantCalcule + ") doit être > 0."
+                    "OCL Violation (Postcondition): le montant final du devis (" + montantCalcule + ") doit être > 0."
             );
         }
 
