@@ -38,14 +38,18 @@ public class AuthenticationService implements IIdentityService, ISessionService 
     private final TokenRepository tokenRepository;
 
     public AuthenticationResponse register(RegisterRequest request) {
+        // /* OCL Precondition: context AuthenticationService::register pre: not Utilisateur.allInstances()->exists(u | u.email = request.email) */
         if (repository.findByEmail(request.getEmail()).isPresent()) {
-            throw new UserAlreadyExistsException("Un utilisateur avec cet email existe déjà.");
+            throw new UserAlreadyExistsException("OCL Violation (Precondition): Un utilisateur avec cet email existe déjà.");
         }
 
         // Utilisation de la Factory centralisée (GoF)
         var user = userFactory.createUser(
                 request,
                 passwordEncoder.encode(request.getMotdepasse()));
+
+        // Vérification manuelle des invariants OCL de l'utilisateur
+        user.validerInvariantsOCL();
 
         var savedUser = repository.save(user);
         var jwtToken = jwtService.generateToken(user);
@@ -63,6 +67,7 @@ public class AuthenticationService implements IIdentityService, ISessionService 
                 request.getMotdepasse()));
         var user = repository.findByEmail(request.getEmail())
                 .orElseThrow();
+        // /* OCL Precondition: context AuthenticationService::authenticate pre: user.idEtat.idEtat = 1 */
         if (user.getIdEtat().getIdEtat() == 1) {
             // Le système appelle simplement la méthode générique (Polymorphisme)
             String role = user.getIdRole().getRedirectName();
@@ -74,13 +79,14 @@ public class AuthenticationService implements IIdentityService, ISessionService 
                     .role(role)
                     .build();
         } else {
-            throw new AccountInactiveException("Votre compte est inactif. Veuillez contacter un administrateur.");
+            throw new AccountInactiveException("OCL Violation (Precondition): Votre compte est inactif. L'utilisateur doit être à l'état actif (1).");
         }
 
     }
 
     // autre partie pour arriver a rendre les anciens token plus valide (dans la
     // base comme premiere etape)
+    // /* OCL Postcondition: context AuthenticationService::revokedAllUserTokens post: Token.allInstances()->select(t | t.utilisateur = user)->forAll(t | t.revoked = true and t.expired = true) */
     private void revokedAllUserTokens(Utilisateur user) {
         var validUserTokens = tokenRepository.findAllValidTokenByUser(user.getIdutilisateur());
         if (validUserTokens.isEmpty())
@@ -153,6 +159,7 @@ public class AuthenticationService implements IIdentityService, ISessionService 
     }
 
     @Override
+    // /* OCL Postcondition: context AuthenticationService::invalidateSession post: Token.allInstances()->select(t | t.token = token)->first().revoked = true and t.expired = true */
     public void invalidateSession(String token) {
         System.out.println("[AuthService-Mediateur] invalidateSession()");
         tokenRepository.findByToken(token).ifPresent(t -> {

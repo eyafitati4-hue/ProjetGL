@@ -1,0 +1,29 @@
+package projetPFE.example.monProjet.model
+
+-- ============================================================================
+-- Fichier Formel OCL : Silo Administration & Profils
+-- ============================================================================
+
+-- 1. Invariant (Données d'inscription) : L'email doit être unique et bien formaté
+context Utilisateur
+inv EmailValide: 
+    self.email <> null and self.email.matches('^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$')
+
+-- 2. Précondition (État utilisateur actif avant login)
+context AuthenticationService::authenticate(request: AuthenticationRequest)
+pre UtilisateurActif: 
+    let user = Utilisateur.allInstances()->select(u | u.email = request.email)->first() in
+    user.idEtat.idEtat = 1
+
+-- 3. Postcondition (Token révoqué après logout ou lors de l'écrasement)
+context AuthenticationService::invalidateSession(token: String)
+post SessionInvalidee:
+    let t = Token.allInstances()->select(tk | tk.token = token)->first() in
+    t.revoked = true and t.expired = true
+    
+-- 4. Invariant (Données d'inscription) : Le téléphone doit contenir exactement 8 chiffres
+context Utilisateur
+inv TelephoneValide:
+    self.telephone <> null and self.telephone.size() = 8 and self.telephone.matches('^[0-9]+$')
+
+endpackage
