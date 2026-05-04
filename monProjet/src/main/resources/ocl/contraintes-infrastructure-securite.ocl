@@ -1,0 +1,193 @@
+-- ============================================================================
+-- OCL formel — périmètre : Infrastructure & Sécurité (Token, AuthenticationService,
+--              TokenExpirationEnforcer, filters)
+--
+-- Objectif pédagogique : invariants non triviaux utilisant let, def, @pre,
+-- implies, and/or, oclIsUndefined(), allInstances(), forAll(), select().
+-- L'exécution reste en Java ; ce fichier est la spécification formelle associée.
+--
+-- Classes concernées :
+--   Token                   → model + token/Token.jaava
+--   AuthenticationService   → auth/AuthenticationService.java
+--   TokenExpirationEnforcer → config/filter/TokenExpirationEnforcer.java
+-- ============================================================================
+
+
+-- ----------------------------------------------------------------------------
+-- Type Token — définitions dérivées réutilisables (def)
+-- ----------------------------------------------------------------------------
+
+context Token
+
+-- Expression nommée : « le token est techniquement actif » —
+-- utilisée par INV-1 et INV-2 pour éviter la duplication d'expression.
+def: estTechniquementActif(): Boolean =
+    not self.expired and not self.revoked
+
+-- Expression nommée : « la date d'expiration est dans le passé » —
+-- repose sur DateTime::now() qui correspond à LocalDateTime.now() en Java.
+def: dateEstDepassee(): Boolean =
+    if self.expirationDate.oclIsUndefined() then
+        false
+    else
+        self.expirationDate <= DateTime::now()
+    endif
+
+
+-- ----------------------------------------------------------------------------
+-- Token — invariants structurels
+-- ----------------------------------------------------------------------------
+
+context Token
+
+-- INV-1 : Cohérence date d'expiration ↔ flag expired
+-- Si la date d'expiration est dépassée, le token DOIT être marqué expired.
+-- Implémenté par : Token.checkAndEnforceInvariant()
+inv INV1_ExpirationCoherente:
+    self.dateEstDepassee() implies self.expired = true
+
+-- INV-2 : Un token actif (non expiré, non révoqué) appartient
+-- forcément à un utilisateur dont le compte est actif (idEtat.idEtat = 1).
+-- Navigation de l'association Token → Utilisateur → Etatutilisateur.
+-- Implémenté par : AuthenticationService.revokedAllUserTokens()
+inv INV2_TokenActifAppartientAUtilisateurActif:
+    self.estTechniquementActif() implies
+        (not self.utilisateur.oclIsUndefined()
+            and self.utilisateur.idEtat.idEtat = 1)
+
+-- INV-3 : Un token ne peut pas être simultanément expired et revoked = false
+-- (un token expiré doit aussi être révoqué — cohérence interne des flags).
+-- Implémenté par : Token.checkAndEnforceInvariant() qui set les deux à true.
+inv INV3_ExpiredImpliesRevoked:
+    self.expired = true implies self.revoked = true
+
+
+-- ----------------------------------------------------------------------------
+-- Token — précondition et postcondition sur saveUserToken (via AuthService)
+-- ----------------------------------------------------------------------------
+
+context AuthenticationService::saveUserToken(user : Utilisateur, jwtToken : String) : Token
+
+pre utilisateurNonNul:
+    not user.oclIsUndefined()
+
+pre jwtTokenNonVide:
+    not jwtToken.oclIsUndefined() and jwtToken.size() > 0
+
+post tokenPersistéAvecDateExpiration:
+    let t : Token = result in
+        not t.expirationDate.oclIsUndefined()
+        and t.expirationDate > DateTime::now()
+
+post tokenInitialementActif:
+    result.expired = false and result.revoked = false
+
+post tokenAppartientALUtilisateur:
+    result.utilisateur = user
+
+
+-- ----------------------------------------------------------------------------
+-- AuthenticationService — opération authenticate : préconditions métier
+-- ----------------------------------------------------------------------------
+
+context AuthenticationService::authenticate(request : AuthenticationRequest) : AuthenticationResponse
+
+pre emailNonVide:
+    not request.email.oclIsUndefined() and request.email.size() > 0
+
+pre motdepasseNonVide:
+    not request.motdepasse.oclIsUndefined() and request.motdepasse.size() > 0
+
+-- Le compte doit être actif (idEtat.idEtat = 1) avant de délivrer un token.
+-- Correspond à : if (user.getIdEtat().getIdEtat() == 1) dans le code.
+pre compteActifRequis:
+    let u : Utilisateur =
+        Utilisateur.allInstances()
+            ->select(x | x.email = request.email)
+            ->any(true)
+    in
+        not u.oclIsUndefined() implies u.idEtat.idEtat = 1
+
+post ancienTokensRévoques:
+    -- Tous les anciens tokens de l'utilisateur retourné doivent être révoqués.
+    -- Correspond à revokedAllUserTokens() dans le code.
+    let email  : String = result.token,
+        tokens : Set(Token) =
+            Token.allInstances()
+                ->select(t |
+                    not t.oclIsUndefined()
+                    and not t.utilisateur.oclIsUndefined()
+                    and t.utilisateur.email = request.email
+                    and t <> Token.allInstances()
+                        ->select(x | not x.oclIsUndefined())
+                        ->sortedBy(x | x.id)->last())
+    in
+        tokens->forAll(t | t.expired = true and t.revoked = true)
+
+post nouveauTokenActifRenvoyé:
+    not result.token.oclIsUndefined() and result.token.size() > 0
+
+
+-- ----------------------------------------------------------------------------
+-- AuthenticationService — register : unicité email (INV-3 applicatif)
+-- ----------------------------------------------------------------------------
+
+context AuthenticationService::register(request : RegisterRequest) : AuthenticationResponse
+
+pre emailNonExistantDansLaBase:
+    -- Aucun utilisateur actif ne doit posséder cet email.
+    -- Correspond à : if (repository.findByEmail(request.getEmail()).isPresent())
+    Utilisateur.allInstances()
+        ->select(u | u.email = request.email)
+        ->isEmpty()
+
+pre roleValide:
+    not request.role.oclIsUndefined()
+
+post utilisateurCréé:
+    Utilisateur.allInstances()
+        ->select(u | u.email = request.email)
+        ->size() = 1
+
+post tokenDélivré:
+    not result.token.oclIsUndefined() and result.token.size() > 0
+
+
+-- ----------------------------------------------------------------------------
+-- TokenExpirationEnforcer — opération enforceAll : postconditions du scan
+-- ----------------------------------------------------------------------------
+
+context TokenExpirationEnforcer::enforceAll() : EnforcementResult
+
+post aucunTokenActifNEstExpiréDansLaDate:
+    -- Après le scan, il ne doit exister aucun token dont la date est dépassée
+    -- mais dont le flag expired vaut encore false.
+    Token.allInstances()
+        ->select(t |
+            not t.expirationDate.oclIsUndefined()
+            and t.expirationDate <= DateTime::now()
+            and t.expired = false)
+        ->isEmpty()
+
+post violationsCompteesCorrectement:
+    result.violationsFixed >= 0
+    and result.totalTokensChecked >= result.violationsFixed
+
+
+-- ----------------------------------------------------------------------------
+-- TokenExpirationEnforcer — opération enforceForToken
+-- ----------------------------------------------------------------------------
+
+context TokenExpirationEnforcer::enforceForToken(tokenStr : String) : Boolean
+
+pre tokenStrNonVide:
+    not tokenStr.oclIsUndefined() and tokenStr.size() > 0
+
+post invariantRespectéAprèsAppel:
+    -- Après l'appel, si le token existe et est expiré par date,
+    -- son flag expired doit valoir true.
+    let t : Token =
+        Token.allInstances()->select(x | x.token = tokenStr)->any(true)
+    in
+        not t.oclIsUndefined() implies
+            (t.dateEstDepassee() implies t.expired = true)
