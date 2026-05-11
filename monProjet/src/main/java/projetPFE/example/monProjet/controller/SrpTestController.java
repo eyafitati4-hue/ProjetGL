@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import projetPFE.example.monProjet.token.Token;
 import projetPFE.example.monProjet.token.TokenRepository;
 import projetPFE.example.monProjet.token.TokenValidator;
+import projetPFE.example.monProjet.config.JwtService;
 import projetPFE.example.monProjet.model.Utilisateur;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
@@ -27,6 +28,7 @@ public class SrpTestController {
     private final TokenValidator       tokenValidator;
     private final TokenRepository      tokenRepository;
     private final UserDetailsService   userDetailsService;
+     private final JwtService         jwtService;
 
     /**
      * TEST 1 : Valider un token via TokenValidator (SRP).
@@ -36,7 +38,7 @@ public class SrpTestController {
             @RequestHeader("Authorization") String authHeader) {
         String jwt = authHeader.replace("Bearer ", "").trim();
         try {
-            String email = extractEmail(jwt);
+            String email = jwtService.extractNomUtilisateur(jwt);
             var userDetails = userDetailsService.loadUserByUsername(email);
             boolean valid = tokenValidator.validate(jwt, userDetails);
             return ResponseEntity.ok(Map.of(
@@ -91,10 +93,5 @@ public class SrpTestController {
         ));
     }
 
-    private String extractEmail(String jwt) {
-        // Extraction simple via JwtService
-        // En production, injecter JwtService ici
-        return jwt; // placeholder — injecter JwtService dans ce contrôleur
-    }
 }
 
